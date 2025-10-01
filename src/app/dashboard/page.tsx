@@ -15,15 +15,19 @@ import StatCard from "./StatCard";
 
 const Dashboard = () => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 xl:overflow-auto gap-10 pb-4 custom-grid-rows">
-      <CardPopularProducts />
+    <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-6">
+      {/* <div className=""> */}
+        <CardPopularProducts />
+      {/* </div> */}
+      {/* <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8"> */}
       <CardSalesSummary />
       <CardPurchaseSummary />
       <CardExpenseSummary />
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
       <StatCard
         title="Customer & Expenses"
         primaryIcon={<Package className="text-blue-600 w-6 h-6" />}
-        dateRange="22 - 29 October 2023"
+        dateRange="22 - 29 October 2025"
         details={[
           {
             title: "Customer Growth",
@@ -42,7 +46,7 @@ const Dashboard = () => {
       <StatCard
         title="Dues & Pending Orders"
         primaryIcon={<CheckCircle className="text-blue-600 w-6 h-6" />}
-        dateRange="22 - 29 October 2023"
+        dateRange="22 - 29 October 2025"
         details={[
           {
             title: "Dues",
@@ -61,7 +65,7 @@ const Dashboard = () => {
       <StatCard
         title="Sales & Discount"
         primaryIcon={<Tag className="text-blue-600 w-6 h-6" />}
-        dateRange="22 - 29 October 2023"
+        dateRange="22 - 29 October 2025"
         details={[
           {
             title: "Sales",
@@ -77,6 +81,8 @@ const Dashboard = () => {
           },
         ]}
       />
+    {/* </div> */}
+    {/* </div> */}
     </div>
   );
 };

@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import Loader from "../(components)/common/Loader";
 
 type AggregatedDataItem = {
   name: string;
@@ -77,7 +78,7 @@ const Expenses = () => {
   };
 
   if (isLoading) {
-    return <div className="py-4">Loading...</div>;
+    return <div className="py-4"> <Loader /></div>;
   }
 
   if (isError || !expensesData) {

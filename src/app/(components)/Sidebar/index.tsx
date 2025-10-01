@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from "@/app/redux";
 import { setIsSidebarCollapsed } from "@/state";
 import {
   Archive,
+  ChevronDown,
   CircleDollarSign,
   Clipboard,
   Layout,
@@ -11,6 +12,10 @@ import {
   Menu,
   SlidersHorizontal,
   User,
+  Wallet,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Tags,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -18,10 +23,15 @@ import { usePathname } from "next/navigation";
 import React from "react";
 
 interface SidebarLinkProps {
-  href: string;
+  href?: string;
   icon: LucideIcon;
   label: string;
   isCollapsed: boolean;
+  children?: React.ReactNode;
+  isChild?: boolean;
+  openKey?: string;
+  activeParent?: string | null;
+  setActiveParent?: (key: string | null) => void;
 }
 
 const SidebarLink = ({
@@ -29,33 +39,95 @@ const SidebarLink = ({
   icon: Icon,
   label,
   isCollapsed,
+  children,
+  isChild,
+  openKey,
+  activeParent,
+  setActiveParent
 }: SidebarLinkProps) => {
   const pathname = usePathname();
   const isActive =
-    pathname === href || (pathname === "/" && href === "/dashboard");
+    href && (pathname === href || (pathname === "/" && href === "/dashboard"));
+
+  const hasChildren = !!children;
+  const isOpen = activeParent === openKey;
+
+  const handleClick = () => {
+    if (hasChildren && setActiveParent && openKey) {
+      setActiveParent(isOpen ? null : openKey);
+    }
+  };
 
   return (
-    <Link href={href}>
-      <div
-        className={`cursor-pointer flex items-center ${
-          isCollapsed ? "justify-center py-4" : "justify-start px-8 py-4"
-        }
-        hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors ${
-          isActive ? "bg-blue-200 text-white" : ""
-        }
-      }`}
-      >
-        <Icon className="w-6 h-6 !text-gray-700" />
-
-        <span
-          className={`${
-            isCollapsed ? "hidden" : "block"
-          } font-medium text-gray-700`}
+    <div>
+      {href ? (
+        <Link href={href}>
+          <div
+            className={`cursor-pointer flex items-center ${
+              isCollapsed
+                ? "justify-center py-4"
+                : "justify-between px-8 py-[12px]"
+            }  ${isChild ? "pl-12" : ""}
+            hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors ${
+              isActive ? "bg-blue-200 text-white" : ""
+            }`}
+          >
+            <div className={`flex items-center gap-3 ${hasChildren && "pl-12"}}`}>
+              <Icon className="w-6 h-6 !text-gray-700" />
+              <span
+                className={`${
+                  isCollapsed ? "hidden" : "block"
+                } text-sm font-medium text-gray-700`}
+              >
+                {label}
+              </span>
+            </div>
+          </div>
+        </Link>
+      ) : (
+        <div
+          onClick={handleClick}
+          className={`cursor-pointer flex items-center ${
+            isCollapsed
+              ? "justify-center py-4"
+              : "justify-between px-8 py-[12px]"
+          }
+          hover:text-blue-500 hover:bg-blue-100 gap-3 transition-colors`}
         >
-          {label}
-        </span>
+          <div className="flex items-center gap-3">
+            <Icon className="w-6 h-6 !text-gray-700" />
+            <span
+              className={`${
+                isCollapsed ? "hidden" : "block"
+              } font-medium text-gray-700`}
+            >
+              {label}
+            </span>
+          </div>
+
+          {/* Chevron Indicator */}
+          {!isCollapsed && hasChildren && (
+            <ChevronDown
+              className={`w-4 h-4 text-gray-500 transition-transform ${
+                isOpen ? "rotate-180" : ""
+              }`}
+            />
+          )}
+        </div>
+      )}
+
+      {/* Render children when open */}
+      {!isCollapsed && isOpen && children && (
+      <div className="flex flex-col gap-1 w-full">
+       {React.Children.map(children, (child) =>
+        React.isValidElement<SidebarLinkProps>(child)
+          ? React.cloneElement(child, { isChild: true } as Partial<SidebarLinkProps>)
+          : child
+      )}
+
       </div>
-    </Link>
+    )}
+    </div>
   );
 };
 
@@ -64,6 +136,7 @@ const Sidebar = () => {
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
   );
+  const [activeParent, setActiveParent] = React.useState<string | null>(null);
 
   const toggleSidebar = () => {
     dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
@@ -82,8 +155,8 @@ const Sidebar = () => {
         }`}
       >
         <Image
-          src="https://s3-inventorymanagement.s3.us-east-2.amazonaws.com/logo.png"
-          alt="edstock-logo"
+          src="https://cdn-icons-png.flaticon.com/512/2211/2211640.png"
+          alt="logo"
           width={27}
           height={27}
           className="rounded w-8"
@@ -91,9 +164,9 @@ const Sidebar = () => {
         <h1
           className={`${
             isSidebarCollapsed ? "hidden" : "block"
-          } font-extrabold text-2xl`}
+          } font-extrabold text-xl`}
         >
-          EDSTOCK
+          CMCL
         </h1>
 
         <button
@@ -113,15 +186,71 @@ const Sidebar = () => {
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
-          href="/inventory"
-          icon={Archive}
-          label="Inventory"
-          isCollapsed={isSidebarCollapsed}
-        />
+         icon={Archive}
+         label="Inventory"
+         isCollapsed={isSidebarCollapsed}
+         openKey="inventory"
+         activeParent={activeParent}
+         setActiveParent={setActiveParent}
+        >
+          <SidebarLink
+            href="/inventory"
+            icon={Archive}
+            label="All Logs"
+            isCollapsed={isSidebarCollapsed}
+            isChild={true}
+          />
+          <SidebarLink
+            href="/inventory/purchases"
+            icon={CircleDollarSign}
+            label="Purchases"
+            isCollapsed={isSidebarCollapsed}
+            isChild={true}
+          />
+          <SidebarLink
+            href="/inventory/sales"
+            icon={CircleDollarSign}
+            label="Sales"
+            isCollapsed={isSidebarCollapsed}
+            isChild={true}
+          />
+        </SidebarLink>
+
         <SidebarLink
           href="/products"
           icon={Clipboard}
           label="Products"
+          isCollapsed={isSidebarCollapsed}
+        />
+        
+        {/* Finance Group */}
+        <SidebarLink
+          icon={Wallet}
+          label="Finance"
+          isCollapsed={isSidebarCollapsed}
+          openKey="finance"
+          activeParent={activeParent}
+          setActiveParent={setActiveParent}
+        >
+          <SidebarLink
+            href="/finance/payable"
+            icon={ArrowDownCircle}
+            label="Payable"
+            isCollapsed={isSidebarCollapsed}
+            isChild={true}
+          />
+          <SidebarLink
+            href="/finance/receivable"
+            icon={ArrowUpCircle}
+            label="Receivable"
+            isCollapsed={isSidebarCollapsed}
+            isChild={true}
+          />
+        </SidebarLink>
+        <SidebarLink
+          href="/categories"
+          icon={Tags}
+          label="Categories"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
@@ -146,7 +275,9 @@ const Sidebar = () => {
 
       {/* FOOTER */}
       <div className={`${isSidebarCollapsed ? "hidden" : "block"} mb-10`}>
-        <p className="text-center text-xs text-gray-500">&copy; 2024 Edstock</p>
+        <p className="text-center text-xs text-gray-500">
+          &copy; {new Date().getFullYear()} cmcl
+        </p>
       </div>
     </div>
   );

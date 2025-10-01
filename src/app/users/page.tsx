@@ -3,6 +3,7 @@
 import { useGetUsersQuery } from "@/state/api";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import Loader from "../(components)/common/Loader";
 
 const columns: GridColDef[] = [
   { field: "userId", headerName: "ID", width: 90 },
@@ -14,7 +15,7 @@ const Users = () => {
   const { data: users, isError, isLoading } = useGetUsersQuery();
 
   if (isLoading) {
-    return <div className="py-4">Loading...</div>;
+    return <div className="py-4"> <Loader /></div>;
   }
 
   if (isError || !users) {

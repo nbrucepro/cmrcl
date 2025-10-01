@@ -7,6 +7,7 @@ import Header from "@/app/(components)/Header";
 import Rating from "@/app/(components)/Rating";
 import CreateProductModal from "./CreateProductModal";
 import Image from "next/image";
+import Loader from "../(components)/common/Loader";
 
 type ProductFormData = {
   name: string;
@@ -31,7 +32,7 @@ const Products = () => {
   };
 
   if (isLoading) {
-    return <div className="py-4">Loading...</div>;
+    return <div className="py-4"> <Loader /></div>;
   }
 
   if (isError || !products) {
@@ -72,7 +73,7 @@ const Products = () => {
       {/* BODY PRODUCTS LIST */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg-grid-cols-3 gap-10 justify-between">
         {isLoading ? (
-          <div>Loading...</div>
+          <div> <Loader /></div>
         ) : (
           products?.map((product) => (
             <div
@@ -80,19 +81,18 @@ const Products = () => {
               className="border shadow rounded-md p-4 max-w-full w-full mx-auto"
             >
               <div className="flex flex-col items-center">
-                <Image
-                  src={`https://s3-inventorymanagement.s3.us-east-2.amazonaws.com/product${
-                    Math.floor(Math.random() * 3) + 1
-                  }.png`}
+              <Image
+                  src={`https://picsum.photos/48/48?random=${Math.floor(Math.random() * 1000)}`}
                   alt={product.name}
                   width={150}
                   height={150}
-                  className="mb-3 rounded-2xl w-36 h-36"
+                  className="rounded-lg w-14 h-14"
+                  unoptimized        
                 />
                 <h3 className="text-lg text-gray-900 font-semibold">
                   {product.name}
                 </h3>
-                <p className="text-gray-800">${product.price.toFixed(2)}</p>
+                <p className="text-gray-800">Frw{product.price.toFixed(2)}</p>
                 <div className="text-sm text-gray-600 mt-1">
                   Stock: {product.stockQuantity}
                 </div>
