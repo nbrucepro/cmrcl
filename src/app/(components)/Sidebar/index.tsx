@@ -1,6 +1,6 @@
 "use client";
 
-import { useAppDispatch, useAppSelector } from "@/app/redux";
+import { useAppDispatch, useAppSelector } from "@/app/(dashboard)/redux";
 import { setIsSidebarCollapsed } from "@/state";
 import {
   Archive,
@@ -180,12 +180,12 @@ const Sidebar = () => {
       {/* LINKS */}
       <div className="flex-grow mt-8">
         <SidebarLink
-          href="/dashboard"
+          href="/inv/dashboard"
           icon={Layout}
           label="Dashboard"
           isCollapsed={isSidebarCollapsed}
         />
-        <SidebarLink
+        {/* <SidebarLink
          icon={Archive}
          label="Inventory"
          isCollapsed={isSidebarCollapsed}
@@ -214,17 +214,17 @@ const Sidebar = () => {
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
-        </SidebarLink>
+        </SidebarLink> */}
 
         <SidebarLink
-          href="/products"
+          href="/inv/products"
           icon={Clipboard}
           label="Products"
           isCollapsed={isSidebarCollapsed}
         />
         
         {/* Finance Group */}
-        <SidebarLink
+        {/* <SidebarLink
           icon={Wallet}
           label="Finance"
           isCollapsed={isSidebarCollapsed}
@@ -246,27 +246,27 @@ const Sidebar = () => {
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
-        </SidebarLink>
+        </SidebarLink> */}
         <SidebarLink
-          href="/categories"
+          href="/inv/categories"
           icon={Tags}
           label="Categories"
           isCollapsed={isSidebarCollapsed}
         />
-        <SidebarLink
-          href="/users"
+        {/* <SidebarLink
+          href="/inv/users"
           icon={User}
           label="Users"
           isCollapsed={isSidebarCollapsed}
-        />
+        /> */}
         <SidebarLink
-          href="/settings"
+          href="/inv/settings"
           icon={SlidersHorizontal}
           label="Settings"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
-          href="/expenses"
+          href="/inv/expenses"
           icon={CircleDollarSign}
           label="Expenses"
           isCollapsed={isSidebarCollapsed}

@@ -4,7 +4,7 @@ import {
 } from "@/state/api";
 import { TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
-import Loader from "../(components)/common/Loader";
+import Loader from "../../../(components)/common/Loader";
 
 type ExpenseSums = {
   [category: string]: number;

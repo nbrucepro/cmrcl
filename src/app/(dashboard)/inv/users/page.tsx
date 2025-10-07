@@ -3,7 +3,7 @@
 import { useGetUsersQuery } from "@/state/api";
 import Header from "@/app/(components)/Header";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import Loader from "../(components)/common/Loader";
+import Loader from "../../../(components)/common/Loader";
 
 const columns: GridColDef[] = [
   { field: "userId", headerName: "ID", width: 90 },

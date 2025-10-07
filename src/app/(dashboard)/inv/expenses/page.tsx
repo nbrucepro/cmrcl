@@ -14,7 +14,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
-import Loader from "../(components)/common/Loader";
+import Loader from "../../../(components)/common/Loader";
 
 type AggregatedDataItem = {
   name: string;
