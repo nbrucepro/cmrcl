@@ -185,7 +185,7 @@ const Sidebar = () => {
           label="Dashboard"
           isCollapsed={isSidebarCollapsed}
         />
-        {/* <SidebarLink
+        <SidebarLink
          icon={Archive}
          label="Inventory"
          isCollapsed={isSidebarCollapsed}
@@ -194,27 +194,27 @@ const Sidebar = () => {
          setActiveParent={setActiveParent}
         >
           <SidebarLink
-            href="/inventory"
+            href="/inv/inventory"
             icon={Archive}
             label="All Logs"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
           <SidebarLink
-            href="/inventory/purchases"
+            href="/inv/inventory/purchases"
             icon={CircleDollarSign}
             label="Purchases"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
           <SidebarLink
-            href="/inventory/sales"
+            href="/inv/inventory/sales"
             icon={CircleDollarSign}
             label="Sales"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
-        </SidebarLink> */}
+        </SidebarLink>
 
         <SidebarLink
           href="/inv/products"

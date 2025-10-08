@@ -35,7 +35,7 @@ const Products = () => {
     return <div className="py-4"> <Loader /></div>;
   }
 
-  if (isError || !products) {
+  if (isError) {
     return (
       <div className="text-center text-red-500 py-4">
         Failed to fetch products

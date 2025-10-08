@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -11,6 +11,8 @@ export default function AdminRegister() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const handleRegister = async () => {
     setError(""); // Clear previous error
@@ -18,7 +20,7 @@ export default function AdminRegister() {
         return;
     }
     try {
-      await axios.post("https://cmrcl-server.onrender.com/api/admin/register", {
+      await axios.post(`${API_URL}api/admin/register`, {
         name,
         email,
         password,
@@ -29,6 +31,13 @@ export default function AdminRegister() {
       setError(message);
     }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/inv/dashboard");
+    }
+  }, [router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 text-gray-700">

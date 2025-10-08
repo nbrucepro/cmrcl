@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
@@ -12,23 +12,42 @@ export default function AdminLogin() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  
+  const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
   const handleLogin = async () => {
     setError("");
+    if(!email && !password){
+      return;
+    }
+    setLoading(true); 
     try {
       const res = await axios.post(
-        "https://cmrcl-server.onrender.com/api/admin/login",
+        `${API_URL}api/admin/login`,
         { email, password },
         { withCredentials: true }
       );
+      localStorage.setItem("token", res.data.token);
+      console.log(res.data)
+      localStorage.setItem("adminName", res.data.admin?.name || "Admin");
       document.cookie = `adminToken=${res.data.token}; path=/; max-age=3600;`;
-      router.push("/");
+      router.push("/inv/dashboard");
     } catch (err) {
       const message =
         err.response?.data?.error || "Login failed. Please check your credentials.";
       setError(message);
+    }finally{
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      router.push("/inv/dashboard");
+    }
+  }, [router]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 text-gray-700">
@@ -76,9 +95,14 @@ export default function AdminLogin() {
 
         <button
           onClick={handleLogin}
-          className="bg-blue-600 w-full py-2.5 rounded-lg text-white font-medium hover:bg-blue-700 transition-all duration-200 cursor-pointer"
-        >
-          Login
+          disabled={loading} // ✅ disable when loading
+          className={`w-full py-2.5 rounded-lg text-white font-medium transition-all duration-200 cursor-pointer ${
+            loading
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700"
+          }`}
+          >
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <div className="mt-5 text-center">

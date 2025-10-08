@@ -2,10 +2,11 @@
 
 import dynamic from "next/dynamic";
 import { GridColDef } from "@mui/x-data-grid";
+import Loader from "../common/Loader";
 
 const DataGrid = dynamic(
   () => import("@mui/x-data-grid").then((mod) => mod.DataGrid),
-  { ssr: false, loading: () => <p>Loading table...</p> }
+  { ssr: false, loading: () => <Loader/> }
 );
 
 const columns: GridColDef[] = [
@@ -33,12 +34,14 @@ const columns: GridColDef[] = [
   },
 ];
 
-export default function ProductTable({ products }: { products: any[] }) {
+export default function ProductTable({ products,isLoading }: { products: any[],isLoading?:boolean }) {
+ console.log(isLoading)
   return (
     <DataGrid
       rows={products}
       columns={columns}
       getRowId={(row) => row.productId}
+      loading={isLoading}
       checkboxSelection
       className="bg-white shadow rounded-lg border border-gray-200 mt-2 !text-gray-700"
     />

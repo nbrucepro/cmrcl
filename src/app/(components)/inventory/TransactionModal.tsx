@@ -18,15 +18,17 @@ export default function TransactionModal({
   open,
   onClose,
   products,
+  tType,
   onSubmit,
 }: {
   open: boolean;
   onClose: () => void;
   products: any[];
+  tType:any;
   onSubmit: (form: any, type: "sale" | "purchase") => void;
 }) {
   const [transactionType, setTransactionType] = useState<"sale" | "purchase">(
-    "sale"
+    tType || "sale"
   );
   const [form, setForm] = useState({
     productId: "",

@@ -28,28 +28,22 @@ export default function InventoryPage() {
     refetch();
   };
 
-  if (isLoading) return <Loader />;
-  if (isError || !products) return <div className="text-center text-red-500">Failed to fetch products</div>;
+  // if (isLoading) return <Loader />;
+  if (isError) return <div className="text-center text-red-500">Failed to fetch products</div>;
 
   return (
     <div className="flex flex-col">
       <Header name="Inventory" />
-      <div className="flex justify-end mb-4">
-        <button
-          onClick={() => setModalOpen(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-md"
-        >
-          + New Transaction
-        </button>
-      </div>
+    
 
-      <ProductTable products={products} />
+      <ProductTable products={products || []} isLoading={isLoading} />
 
       <TransactionModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        products={products}
+        products={products || []}
         onSubmit={handleSubmit}
+        tType={"sale"}
       />
     </div>
   );
