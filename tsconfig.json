@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(public)/layout.jsx", "src/app/layout.tsx", "src/app/(dashboard)/inv/products/CreateProductModal.jsx", "src/app/(dashboard)/inv/products/page.jsx", "src/app/(components)/inventory/InventoryBase.jsx", "src/app/(dashboard)/inv/dashboard/CardPopularProducts.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(public)/layout.jsx", "src/app/layout.tsx", "src/app/(dashboard)/inv/products/CreateProductModal.jsx", "src/app/(dashboard)/inv/products/page.jsx", "src/app/(components)/inventory/InventoryBase.jsx", "src/app/(dashboard)/inv/dashboard/CardPopularProducts.jsx", "src/app/(dashboard)/inv/profit-loss/page.jsx"],
   "exclude": ["node_modules"]
 }

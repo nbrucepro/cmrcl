@@ -224,6 +224,12 @@ const Sidebar = () => {
           label="Products"
           isCollapsed={isSidebarCollapsed}
         />
+        <SidebarLink
+          href="/inv/profit-loss"
+          icon={Clipboard}
+          label="Profits & loss"
+          isCollapsed={isSidebarCollapsed}
+        />
         
         {/* Finance Group */}
         {/* <SidebarLink

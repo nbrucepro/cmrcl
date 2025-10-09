@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://cmrcl-server.onrender.com/";
+const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "https://cmrcl-server.onrender.com/";
 
 export const fetchProducts = async (params: string = "") => {
   const res = await fetch(`${API_URL}products?${params}`);
