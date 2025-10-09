@@ -46,8 +46,10 @@ const SidebarLink = ({
   setActiveParent
 }: SidebarLinkProps) => {
   const pathname = usePathname();
+  console.log(pathname)
+  console.log(href)
   const isActive =
-    href && (pathname === href || (pathname === "/" && href === "/dashboard"));
+    href && (pathname === href || (pathname === "/" && href === "/inv/dashboard"));
 
   const hasChildren = !!children;
   const isOpen = activeParent === openKey;
@@ -247,30 +249,30 @@ const Sidebar = () => {
             isChild={true}
           />
         </SidebarLink> */}
-        <SidebarLink
+        {/* <SidebarLink
           href="/inv/categories"
           icon={Tags}
           label="Categories"
           isCollapsed={isSidebarCollapsed}
-        />
+        /> */}
         {/* <SidebarLink
           href="/inv/users"
           icon={User}
           label="Users"
           isCollapsed={isSidebarCollapsed}
         /> */}
-        <SidebarLink
+        {/* <SidebarLink
           href="/inv/settings"
           icon={SlidersHorizontal}
           label="Settings"
           isCollapsed={isSidebarCollapsed}
-        />
-        <SidebarLink
+        /> */}
+        {/* <SidebarLink
           href="/inv/expenses"
           icon={CircleDollarSign}
           label="Expenses"
           isCollapsed={isSidebarCollapsed}
-        />
+        /> */}
       </div>
 
       {/* FOOTER */}

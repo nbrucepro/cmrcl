@@ -50,7 +50,7 @@ const Navbar = () => {
           <Menu className="w-4 h-4" />
         </button>
 
-        <div className="relative">
+        <div className="hidden">
           <input
             type="search"
             placeholder="Start typing to search groups & products"

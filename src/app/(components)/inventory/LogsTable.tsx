@@ -10,23 +10,22 @@ const DataGrid = dynamic(
 
 export default function LogsTable({ rows, type,loading, }: { rows: any[]; type: "sales" | "purchases";loading?:boolean }) {
   const columns: GridColDef[] = [
-    { field: "id", headerName: "ID", width: 90 },
+    // { field: "id", headerName: "ID", width: 90 },
     { field: "productName", headerName: "Product", flex: 1 },
     { field: "quantity", headerName: "Quantity", flex: 1 },
     {
       field: "price",
-      headerName: type === "sales" ? "Unit Price" : "Unit Cost",
+      headerName: type === "sales" ? "Selling Price" : "Unit Cost",
       flex: 1,
-      valueGetter: (_, row) => `Frw ${row.price}`,
+      valueGetter: (_, row) => `$ ${ type === "sales" ? row?.sellingPrice : row?.totalCost}`,
     },
     { field: "date", headerName: "Date", flex: 1 },
   ];
-console.log(loading)
   return (
     <DataGrid
       rows={rows}
       columns={columns}
-      getRowId={(row) => row.id}
+      getRowId={(row) => row.purchaseId||row.saleId}
       loading={loading} 
       className="bg-white shadow rounded-lg border border-gray-200 mt-2 !text-gray-700"
     />

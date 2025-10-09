@@ -105,7 +105,7 @@ export default function AdminLogin() {
           {loading ? "Logging in..." : "Login"}
         </button>
 
-        <div className="mt-5 text-center">
+        <div className="mt-5 text-center hidden">
           <p className="text-gray-600 text-sm">
             Don’t have an account?{" "}
             <Link

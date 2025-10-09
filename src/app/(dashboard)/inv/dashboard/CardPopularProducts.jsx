@@ -25,24 +25,16 @@ const CardPopularProducts = () => {
                 className="flex items-center justify-between gap-3 px-5 py-7 border-b"
               >
                 <div className="flex items-center gap-3">
-                <Image
-                  src={`https://picsum.photos/48/48?random=${Math.floor(Math.random() * 1000)}`}
-                  alt={product.name}
-                  width={48}
-                  height={48}
-                  className="rounded-lg w-14 h-14"
-                  unoptimized        
-                />
                   <div className="flex flex-col justify-between gap-1">
                     <div className="font-bold text-gray-700">
                       {product.name}
                     </div>
                     <div className="flex text-sm items-center">
                       <span className="font-bold text-blue-500 text-xs">
-                        Frw {product.price}
+                        $ {product?.variants[0]?.sellingPrice}
                       </span>
-                      <span className="mx-2">|</span>
-                      <Rating rating={product.rating || 0} />
+                      {/* <span className="mx-2">|</span>
+                      <Rating rating={product.rating || 0} /> */}
                     </div>
                   </div>
                 </div>
@@ -51,7 +43,7 @@ const CardPopularProducts = () => {
                   <button className="p-2 rounded-full bg-blue-100 text-blue-600 mr-2">
                     <ShoppingBag className="w-4 h-4" />
                   </button>
-                  {Math.round(product.stockQuantity / 1000)}k Sold
+                  {Math.round(product.soldCount)} Sold
                 </div>
               </div>
             ))}

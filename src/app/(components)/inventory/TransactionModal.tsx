@@ -37,6 +37,7 @@ export default function TransactionModal({
   });
 
   const handleSubmit = () => {
+    console.log(form)
     onSubmit(form, transactionType);
     onClose();
   };
