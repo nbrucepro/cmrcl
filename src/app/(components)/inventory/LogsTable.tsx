@@ -17,13 +17,13 @@ export default function LogsTable({ rows, type,loading, }: { rows: any[]; type: 
       field: "price",
       headerName: type === "sales" ? "Selling Price" : "Unit Cost",
       flex: 1,
-      valueGetter: (_, row) => `$ ${ row?.totalAmount/row?.quantity}`,
+      valueGetter: (_, row) => `$ ${type === "sales" ? row?.totalAmount/row?.quantity : row?.totalCost/row?.quantity}`,
     },
     {
       field: "totalAmount",
       headerName: "Total Amount",
       flex: 1,
-      valueGetter: (_, row) => `$ ${row?.totalAmount}`,
+      valueGetter: (_, row) => `$ ${type === "sales" ? row?.totalAmount : row?.totalCost}`,
     },
     // { field: "totalAmount", headerName: "Total Amount", flex: 1 },
     {
