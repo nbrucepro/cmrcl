@@ -34,7 +34,6 @@ export default function ProfitLossPage() {
         return;
       }
 
-      console.log(token)
       const res = await axios.get(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}api/products/profits-losses`,
         {
@@ -64,13 +63,13 @@ export default function ProfitLossPage() {
   };
 
   return (
-    <div className="p-6 min-h-screen bg-gray-50 ">
+    <div className="p-2 bg-gray-50 ">
       <div className="flex flex-col sm:flex-row justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 ">
+        {/* <h1 className="text-2xl font-bold text-gray-800 ">
           Profit & Loss Report
-        </h1>
+        </h1> */}
 
-        <div className="flex gap-3 mt-3 sm:mt-0">
+        <div className="hidden gap-3 mt-3 sm:mt-0">
           <RangePicker
             value={dateRange}
             onChange={handleDateChange}

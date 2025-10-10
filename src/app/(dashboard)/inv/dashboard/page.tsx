@@ -12,11 +12,13 @@ import CardPopularProducts from "./CardPopularProducts";
 import CardPurchaseSummary from "./CardPurchaseSummary";
 import CardSalesSummary from "./CardSalesSummary";
 import StatCard from "./StatCard";
+import ProfitLossess from "./profitLossess";
 // import StoreProvider from "../../redux";
 
 const Dashboard = () => {
   return (
     <>
+    <ProfitLossess/>
     <div className="grid grid-cols-1 xl:grid-cols-3 gap-8 pb-6">
       {/* <div className=""> */}
         <CardPopularProducts />

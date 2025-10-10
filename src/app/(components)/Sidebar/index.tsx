@@ -2,20 +2,11 @@
 
 import { useAppDispatch, useAppSelector } from "@/app/(dashboard)/redux";
 import { setIsSidebarCollapsed } from "@/state";
+import { Logout } from "@mui/icons-material";
 import {
-  Archive,
   ChevronDown,
-  CircleDollarSign,
-  Clipboard,
-  Layout,
   LucideIcon,
   Menu,
-  SlidersHorizontal,
-  User,
-  Wallet,
-  ArrowDownCircle,
-  ArrowUpCircle,
-  Tags,
 } from "lucide-react";
 import {
   LayoutDashboard,
@@ -23,15 +14,11 @@ import {
   Package,
   ShoppingCart,
   Receipt,
-  BarChart3,
-  DollarSign,
-  Settings2,
-  Users,
 } from "lucide-react";
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import React from "react";
 
 interface SidebarLinkProps {
@@ -159,7 +146,15 @@ const Sidebar = () => {
   const sidebarClassNames = `fixed flex flex-col ${
     isSidebarCollapsed ? "w-0 md:w-16" : "w-72 md:w-64"
   } bg-white transition-all duration-300 overflow-hidden h-full shadow-md z-40`;
+  const router = useRouter();
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("adminName");
+    document.cookie = "adminToken=; path=/; max-age=0;";
+    router.push("/adminlogin");
+  };
+  
   return (
     <div className={sidebarClassNames}>
       {/* TOP LOGO */}
@@ -199,36 +194,36 @@ const Sidebar = () => {
           label="Dashboard"
           isCollapsed={isSidebarCollapsed}
         />
-        <SidebarLink
+        {/* <SidebarLink
          icon={Boxes}
          label="Inventory"
          isCollapsed={isSidebarCollapsed}
          openKey="inventory"
          activeParent={activeParent}
          setActiveParent={setActiveParent}
-        >
-          <SidebarLink
+         >
+          </SidebarLink> */}
+          {/* <SidebarLink
             href="/inv/inventory"
             icon={Package}
             label="All Logs"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
-          />
+          /> */}
           <SidebarLink
             href="/inv/inventory/purchases"
             icon={ShoppingCart}
             label="Purchases"
             isCollapsed={isSidebarCollapsed}
-            isChild={true}
+            // isChild={true}
           />
           <SidebarLink
             href="/inv/inventory/sales"
             icon={Receipt}
             label="Sales"
             isCollapsed={isSidebarCollapsed}
-            isChild={true}
+            // isChild={true}
           />
-        </SidebarLink>
 
         <SidebarLink
           href="/inv/products"
@@ -236,12 +231,12 @@ const Sidebar = () => {
           label="Products"
           isCollapsed={isSidebarCollapsed}
         />
-        <SidebarLink
+        {/* <SidebarLink
           href="/inv/profit-loss"
           icon={BarChart3}
           label="Profits & loss"
           isCollapsed={isSidebarCollapsed}
-        />
+        /> */}
         
         {/* Finance Group */}
         {/* <SidebarLink
@@ -294,11 +289,17 @@ const Sidebar = () => {
       </div>
 
       {/* FOOTER */}
-      <div className={`${isSidebarCollapsed ? "hidden" : "block"} mb-10`}>
-        <p className="text-center text-xs text-gray-500">
-          &copy; {new Date().getFullYear()} cmcl
-        </p>
-      </div>
+      {/* LOGOUT BUTTON */}
+<div className={` mb-5 `}>
+  <button
+    onClick={handleLogout}
+    className="flex items-center gap-3 w-full text-red-600 hover:bg-gray-100 px-4 py-2 rounded-md transition"
+  >
+    <Logout className="w-5 h-5" />
+    <span className={`${isSidebarCollapsed ? "hidden" : "block"} text-sm font-medium`}>Logout</span>
+  </button>
+</div>
+
     </div>
   );
 };

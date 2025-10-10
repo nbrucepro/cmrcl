@@ -177,7 +177,7 @@ export default function InventoryBase({
 
     <Tooltip title="Apply Filter">
       <Button
-        variant="contained"
+        variant="outlined"
         color="primary"
         startIcon={<FilterAlt />}
         onClick={handleFilter}
@@ -214,7 +214,7 @@ export default function InventoryBase({
   <div className="flex flex-wrap gap-3 md:justify-end">
     <Tooltip title="Download CSV">
       <Button
-        variant="contained"
+        variant="outlined"
         color="success"
         startIcon={<Download />}
         onClick={handleDownload}
@@ -231,7 +231,7 @@ export default function InventoryBase({
 
     <Tooltip title="New Transaction">
       <Button
-        variant="contained"
+        variant="outlined"
         startIcon={<AddCircle />}
         onClick={() => setModalOpen(true)}
         sx={{

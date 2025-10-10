@@ -62,33 +62,34 @@ export default function TransactionModal({
       setLoading(false);
     }
   };
-console.log(products)
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>
         {transactionType === "sale" ? "New Sale" : "New Purchase"}
       </DialogTitle>
       <DialogContent>
-  <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", paddingTop: "0.5rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "1.8rem", padding: "1rem 0.5rem" }}>
 
-        <FormControl fullWidth>
+        <FormControl fullWidth sx={{ "& .MuiInputBase-root": { borderRadius: 2 } }}>
           <InputLabel>Transaction Type</InputLabel>
           <Select
             value={transactionType}
             onChange={(e) =>
               setTransactionType(e.target.value as "sale" | "purchase")
             }
+            label="Transaction Type"
+            disabled
           >
             <MenuItem value="sale">Sale</MenuItem>
             <MenuItem value="purchase">Purchase</MenuItem>
           </Select>
         </FormControl>
 
-        <FormControl fullWidth>
+        <FormControl fullWidth sx={{ "& .MuiInputBase-root": { borderRadius: 2 } }}>
           <InputLabel>Product</InputLabel>
           <Select
             value={form.productId}
-            // onChange={(e) => setForm({ ...form, productId: e.target.value })}
+            label="Product"
             onChange={(e) => {
               const selectedId = e.target.value;
               const product = products.find((p) => p.productId === selectedId);

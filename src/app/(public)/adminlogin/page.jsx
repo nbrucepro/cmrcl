@@ -32,14 +32,15 @@ export default function AdminLogin() {
       console.log(res.data)
       localStorage.setItem("adminName", res.data.admin?.name || "Admin");
       document.cookie = `adminToken=${res.data.token}; path=/; max-age=3600;`;
+      setLoading(false);
       router.push("/inv/dashboard");
     } catch (err) {
+      setLoading(false);
       const message =
         err.response?.data?.error || "Login failed. Please check your credentials.";
       setError(message);
-    }finally{
-      setLoading(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -62,7 +63,12 @@ export default function AdminLogin() {
             {error}
           </div>
         )}
-
+      <form
+  onSubmit={(e) => {
+    e.preventDefault(); 
+    handleLogin();
+  }}
+>
         <input
           type="email"
           placeholder="Email Address"
@@ -92,8 +98,18 @@ export default function AdminLogin() {
             )}
           </button>
         </div>
-
-        <button
+        
+  <button
+    type="submit" // <-- important for Enter key
+    disabled={loading} 
+    className={`w-full py-2.5 rounded-lg text-white font-medium transition-all duration-200 cursor-pointer ${
+      loading ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 hover:bg-blue-700"
+    }`}
+  >
+    {loading ? "Logging in..." : "Login"}
+  </button>
+  </form>
+        {/* <button
           onClick={handleLogin}
           disabled={loading} 
           className={`w-full py-2.5 rounded-lg text-white font-medium transition-all duration-200 cursor-pointer ${
@@ -103,7 +119,7 @@ export default function AdminLogin() {
           }`}
           >
           {loading ? "Logging in..." : "Login"}
-        </button>
+        </button> */}
 
         <div className="mt-5 text-center hidden">
           <p className="text-gray-600 text-sm">

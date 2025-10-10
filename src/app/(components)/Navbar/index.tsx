@@ -52,7 +52,7 @@ const Navbar = () => {
   };
 
   return (
-    <div className="flex justify-between items-center w-full mb-7">
+    <div className="flex justify-between items-center w-full mb-3">
       {/* LEFT SIDE */}
       <div className="flex justify-between items-center gap-5">
         <button
@@ -61,22 +61,11 @@ const Navbar = () => {
         >
           <Menu className="w-4 h-4" />
         </button>
-
-        <div className="hidden">
-          <input
-            type="search"
-            placeholder="Start typing to search groups & products"
-            className="pl-10 pr-4 py-2 w-50 md:w-60 border-2 border-gray-300 bg-white rounded-lg focus:outline-none focus:border-blue-500"
-          />
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Bell className="text-gray-500" size={20} />
-          </div>
-        </div>
       </div>
 
       {/* RIGHT SIDE */}
       <div className="flex justify-between items-center gap-5">
-        <div className="hidden md:flex justify-between items-center gap-5">
+        <div className=" md:flex justify-between items-center gap-5">
           {/* Dark mode toggle */}
           {/* <button onClick={toggleDarkMode}>
             {isDarkMode ? (
@@ -94,12 +83,11 @@ const Navbar = () => {
             </span>
           </div> */}
 
-          <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
+          {/* <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" /> */}
 
           {/* USER INFO */}
-          <div className="relative flex items-center gap-3 cursor-pointer" ref={dropdownRef}>
+          <div className="relative items-center gap-3 cursor-pointer" ref={dropdownRef}>
             <button
-              onClick={() => setDropdownOpen((prev) => !prev)}
               className="flex items-center gap-3 focus:outline-none cursor-pointer"
             >
               <Image
@@ -112,32 +100,8 @@ const Navbar = () => {
               />
               <span className="font-semibold">{user.name}</span>
             </button>
-
-            {dropdownOpen && (
-              <div className="absolute flex flex-col top-14 right-0 bg-white shadow-lg rounded-xl p-3 w-44 z-50">
-                <button
-                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition"
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <Settings size={18} className="text-gray-600" /> Settings
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-red-600 hover:bg-gray-100 rounded-md transition"
-                >
-                  <LogOut size={18} /> Logout
-                </button>
-              </div>
-            )}
           </div>
         </div>
-
-        <Link href="/inv/settings">
-          <Settings
-            className="cursor-pointer text-gray-500 md:hidden"
-            size={24}
-          />
-        </Link>
       </div>
     </div>
   );

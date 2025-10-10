@@ -12,35 +12,42 @@ import {
   Divider,
   Box,
 } from "@mui/material";
-import Grid from "@mui/material/Grid"
+import Grid from "@mui/material/Grid";
 import { Add, Delete } from "@mui/icons-material";
 import { v4 } from "uuid";
 
 const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   // inside the component
-const [loading, setLoading] = useState(false);
-const [otherType, setOtherType] = useState(""); // new
+  const [loading, setLoading] = useState(false);
+  const [otherType, setOtherType] = useState(""); // new
 
   const [formData, setFormData] = useState({
     productId: v4(),
     name: "",
     description: "",
     price: 0,
-    categoryId:"",
+    categoryId: "",
     stockQuantity: 0,
     rating: 0,
   });
-  const doorTypes = ["Single Door", "Double Door", "Sliding Door", "French Door"];
+  const doorTypes = [
+    "Single Door",
+    "Double Door",
+    "Sliding Door",
+    "French Door",
+  ];
   const lockTypes = ["Padlock", "Deadbolt", "Lever Handle", "Knob Lock"];
-  
+
   const [variants, setVariants] = useState([
     {
       sku: "",
       purchasePrice: 0,
       sellingPrice: 0,
       stockQuantity: 0,
-      attributes: [      { name: "Length", value: 0 }, // ← input for length
-      { name: "width", value: 0 }, ],
+      attributes: [
+        { name: "Length", value: 0 }, // ← input for length
+        { name: "width", value: 0 },
+      ],
     },
   ]);
   const [errors, setErrors] = useState({});
@@ -68,27 +75,35 @@ const [otherType, setOtherType] = useState(""); // new
     ]);
     setErrors({});
   };
-  
+
   const validateForm = () => {
     const newErrors = {};
-  
+
     if (!formData.categoryId || formData.categoryId === "Select Category") {
       newErrors.categoryId = "Category is required";
     }
     if (!formData.name.trim() || formData.name === "Select Type") {
       newErrors.name = "Type is required";
     }
-  
+    if (formData.name === "Other") {
+      if (!otherType.trim()) {
+        newErrors.otherType = "Please specify the type";
+      }
+    }
+
     variants.forEach((variant, vIndex) => {
       if (!variant.sku.trim())
         newErrors[`variant_sku_${vIndex}`] = "SKU is required";
       if (variant.stockQuantity < 0)
-        newErrors[`variant_stockQuantity_${vIndex}`] = "Variant stock cannot be negative";
-        if (variant.purchasePrice <= 0)
-        newErrors[`variant_purchasePrice_${vIndex}`] = "Purchase price must be greater than 0";
+        newErrors[`variant_stockQuantity_${vIndex}`] =
+          "Stock can not be negative";
+      if (variant.purchasePrice <= 0)
+        newErrors[`variant_purchasePrice_${vIndex}`] =
+          "Purchase price must be greater than 0";
       if (variant.sellingPrice <= 0)
-        newErrors[`variant_sellingPrice_${vIndex}`] = "Selling price must be greater than 0";
-      
+        newErrors[`variant_sellingPrice_${vIndex}`] =
+          "Selling price must be greater than 0";
+
       // variant.attributes.forEach((attr, aIndex) => {
       //   const validNames = ["Width", "Length"];
       //   if (!attr.name.trim())
@@ -101,21 +116,22 @@ const [otherType, setOtherType] = useState(""); // new
       //   });
       if (formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
         const requiredNames = ["Width", "Length"];
-  
+
         requiredNames.forEach((reqName) => {
-          const attr = variant.attributes.find(a => a.name === reqName);
+          const attr = variant.attributes.find((a) => a.name === reqName);
           if (!attr)
             newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
           else if (attr.value === "" || parseFloat(attr.value) <= 0)
-            newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} must be greater than 0`;
+            newErrors[
+              `attr_${reqName}_${vIndex}`
+            ] = `${reqName} must be greater than 0`;
         });
       }
     });
-  
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  
 
   // 🔹 Input handlers
   const handleChange = (e) => {
@@ -129,10 +145,9 @@ const [otherType, setOtherType] = useState(""); // new
     // });
     setFormData({
       ...formData,
-      [name]:
-        ["price", "stockQuantity", "rating"].includes(name)
-          ? parseFloat(value)
-          : value,
+      [name]: ["price", "stockQuantity", "rating"].includes(name)
+        ? parseFloat(value)
+        : value,
     });
 
     if (errors[name]) {
@@ -178,10 +193,13 @@ const [otherType, setOtherType] = useState(""); // new
     const updated = [...variants];
     updated[index][name] =
       name === "price" || name === "stockQuantity" ? parseFloat(value) : value;
-    updated[index][name] =
-      ["purchasePrice", "sellingPrice", "stockQuantity"].includes(name)
-        ? parseFloat(value)
-        : value;
+    updated[index][name] = [
+      "purchasePrice",
+      "sellingPrice",
+      "stockQuantity",
+    ].includes(name)
+      ? parseFloat(value)
+      : value;
     setVariants(updated);
     const errorKey = `variant_${name}_${index}`;
     if (errors[errorKey]) {
@@ -191,34 +209,34 @@ const [otherType, setOtherType] = useState(""); // new
         return newErrors;
       });
     }
-  
   };
 
-  const handleAttributeChange = (
-    variantIndex,
-    attrIndex,
-    e
-  ) => {
+  const handleAttributeChange = (variantIndex, attrIndex, e) => {
     const { name, value } = e.target;
     const updated = [...variants];
     updated[variantIndex].attributes[attrIndex][name] = value;
     setVariants(updated);
-  const attrName = updated[variantIndex].attributes[attrIndex].name;
-  const errorKey = `attr_${attrName}_${variantIndex}`;
-  if (errors[errorKey]) {
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[errorKey];
-      return newErrors;
-    });
-  }
+    const attrName = updated[variantIndex].attributes[attrIndex].name;
+    const errorKey = `attr_${attrName}_${variantIndex}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
   };
 
   // 🔹 Add/remove variant or attribute
   const addVariant = () =>
     setVariants([
       ...variants,
-      { sku: "", price: 0, stockQuantity: 0, attributes: [{ name: "", value: "" }] },
+      {
+        sku: "",
+        price: 0,
+        stockQuantity: 0,
+        attributes: [{ name: "", value: "" }],
+      },
     ]);
 
   const removeVariant = (index) =>
@@ -238,14 +256,14 @@ const [otherType, setOtherType] = useState(""); // new
     setVariants(updated);
   };
 
-  const handleSubmit =async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
     const finalFormData = {
       ...formData,
       name: formData.name === "Other" ? otherType : formData.name,
     };
-  
+
     setLoading(true);
     try {
       await onCreate({ ...finalFormData, variants });
@@ -258,7 +276,6 @@ const [otherType, setOtherType] = useState(""); // new
     resetForm();
     onClose();
   };
-  
 
   return (
     <Dialog
@@ -266,7 +283,7 @@ const [otherType, setOtherType] = useState(""); // new
       onClose={handleClose}
       fullWidth
       maxWidth="md"
-      sx={{ "& .MuiDialog-paper": { borderRadius: 3,p:1 } }}
+      sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 1 } }}
     >
       <DialogTitle variant="h6" textAlign="center" sx={{ fontWeight: 600 }}>
         Create New Product
@@ -275,86 +292,107 @@ const [otherType, setOtherType] = useState(""); // new
       <Divider />
 
       <DialogContent sx={{ p: 3 }}>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 2 , }}>
-        <Box display="flex" flexDirection="column" gap={2}>
-          <Grid container spacing={4}>
-            {/* PRODUCT DETAILS */}
-            <Grid item xs={12} sm={6}>
-            <TextField
-    select
-    fullWidth
-    label="Select Category"
-    name="categoryId"
-    value={formData.categoryId || ""}
-    onChange={handleChange}
-    error={!!errors.categoryId}
-    helperText={errors.categoryId}
-    SelectProps={{ native: true }}
-    required
-  >
-    
-    <option key="" value="Select Category">Select Category</option>
-    <option value="b52d030f-1309-4099-bc85-b3d040fb9806">Lock</option>
-    <option value="c25b2efb-ec58-4036-a38e-65e9c2c5bcfc">Door</option>
-  </TextField>
-            </Grid>
-            <Grid item xs={12} sm={3}>
-            <TextField
-  select
-  fullWidth
-  label={`Type`}
-  name="name"
-  value={formData.name}
-  error={!!errors.name}
-  helperText={errors.name}
-  onChange={(e) => {
-    handleChange(e); // existing
-    if (e.target.value !== "Other") setOtherType(""); // reset if not other
-  }}
-  SelectProps={{ native: true }}
->
-<option key="Select Type" value="Select Type">Select Type</option>
-  {formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc"
-    ? [...doorTypes, "Other"].map((type) => <option key={type} value={type}>{type}</option>)
-    : formData.categoryId === "b52d030f-1309-4099-bc85-b3d040fb9806"
-    ? [...lockTypes, "Other"].map((type) => <option key={type} value={type}>{type}</option>)
-    : null}
-      </TextField>
-    {formData.name === "Other" && (
-  <Grid className="mt-4" item xs={12} sm={3}>
-    <TextField
-      fullWidth
-      label="Specify Type"
-      value={otherType}
-      onChange={(e) => setOtherType(e.target.value)}
-      required
-    />
-  </Grid>
-)}
+        <Box  component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
+          <Box  display="flex" flexDirection="column" gap={2}>
+            <Grid container spacing={4}>
+              {/* PRODUCT DETAILS */}
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  fullWidth
+                  label="Select Category"
+                  name="categoryId"
+                  value={formData.categoryId || ""}
+                  onChange={handleChange}
+                  error={!!errors.categoryId}
+                  helperText={errors.categoryId}
+                  SelectProps={{ native: true }}
+                  required
+                >
+                  <option key="" value="Select Category">
+                    Select Category
+                  </option>
+                  <option value="b52d030f-1309-4099-bc85-b3d040fb9806">
+                    Lock
+                  </option>
+                  <option value="c25b2efb-ec58-4036-a38e-65e9c2c5bcfc">
+                    Door
+                  </option>
+                </TextField>
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <TextField
+                  select
+                  fullWidth
+                  label={`Type`}
+                  name="name"
+                  value={formData.name}
+                  error={!!errors.name}
+                  helperText={errors.name}
+                  onChange={(e) => {
+                    handleChange(e); // existing
+                    if (e.target.value !== "Other") setOtherType(""); // reset if not other
+                  }}
+                  SelectProps={{ native: true }}
+                >
+                  <option key="Select Type" value="Select Type">
+                    Select Type
+                  </option>
+                  {formData.categoryId ===
+                  "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc"
+                    ? [...doorTypes, "Other"].map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))
+                    : formData.categoryId ===
+                      "b52d030f-1309-4099-bc85-b3d040fb9806"
+                    ? [...lockTypes, "Other"].map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))
+                    : null}
+                </TextField>
+                {formData.name === "Other" && (
+                  <Grid className="mt-4" item xs={12} sm={3}>
+                    <TextField
+                      fullWidth
+                      label="Specify Type"
+                      value={otherType}
+                      onChange={(e) => setOtherType(e.target.value)}
+                      error={!!errors.otherType}
+                      helperText={errors.otherType}
+                      required
+                    />
+                  </Grid>
+                )}
+              </Grid>
+              <Grid item xs={12} sm={3}>
+                <TextField
+                  fullWidth
+                  label="Product Description"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleChange}
+                  multiline
+                  // minRows={3}
+                  // maxRows={6}
+                />
+              </Grid>
 
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Rating"
+                  type="number"
+                  name="rating"
+                  value={formData.rating}
+                  onChange={handleChange}
+                  inputProps={{ step: "0.1", min: "0", max: "5" }}
+                />
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={3}>
-              <TextField
-                fullWidth
-                label="Product Description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Rating"
-                type="number"
-                name="rating"
-                value={formData.rating}
-                onChange={handleChange}
-                inputProps={{ step: "0.1", min: "0", max: "5" }}
-              />
-            </Grid>
-          </Grid>
           </Box>
           {/* VARIANTS SECTION */}
           <Typography variant="h6" sx={{ mt: 4, fontWeight: 600 }}>
@@ -372,7 +410,7 @@ const [otherType, setOtherType] = useState(""); // new
                 backgroundColor: "#fafafa",
               }}
             >
-              <Grid container spacing={2}>
+              <Grid container spacing={3}>
                 <Grid item xs={12} sm={3}>
                   <TextField
                     fullWidth
@@ -411,7 +449,7 @@ const [otherType, setOtherType] = useState(""); // new
                 <Grid item xs={12} sm={3}>
                   <TextField
                     fullWidth
-                    label="Variant Stock"
+                    label="Stock Quantity"
                     type="number"
                     name="stockQuantity"
                     value={variant.stockQuantity}
@@ -423,14 +461,25 @@ const [otherType, setOtherType] = useState(""); // new
               </Grid>
 
               {/* ATTRIBUTES */}
-              {formData.categoryId && formData.categoryId == "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc" && (
-              <Typography variant="subtitle2" sx={{ mt: 2, fontWeight: 500 }}>
-                Attributes (Door Dimensions)
-              </Typography>
-              )}
+              {formData.categoryId &&
+                formData.categoryId ==
+                  "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc" && (
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ mt: 4, fontWeight: 500 }}
+                  >
+                    Attributes (Door Dimensions)
+                  </Typography>
+                )}
 
               {variant.attributes.map((attr, aIndex) => (
-                <Grid container spacing={2} key={aIndex} alignItems="center" sx={{ mt: 1 }}>
+                <Grid
+                  container
+                  spacing={4}
+                  key={aIndex}
+                  alignItems="center"
+                  sx={{ mt: 3 }}
+                >
                   <Grid item xs={5}>
                     <TextField
                       fullWidth
@@ -474,17 +523,16 @@ const [otherType, setOtherType] = useState(""); // new
               </Button> */}
 
               <Divider sx={{ my: 2 }} />
-                {variants?.length > 1 && (
-
-                  <Button
+              {variants?.length > 1 && (
+                <Button
                   variant="outlined"
                   color="error"
                   startIcon={<Delete />}
                   onClick={() => removeVariant(vIndex)}
-                  >
-                Remove Variant
-              </Button>
-                )} 
+                >
+                  Remove Variant
+                </Button>
+              )}
             </Box>
           ))}
 
@@ -513,7 +561,6 @@ const [otherType, setOtherType] = useState(""); // new
         >
           {loading ? "Creating..." : "Create Product"}
         </Button>
-
       </DialogActions>
     </Dialog>
   );
