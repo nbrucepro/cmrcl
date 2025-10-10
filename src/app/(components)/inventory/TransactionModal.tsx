@@ -35,19 +35,42 @@ export default function TransactionModal({
     quantity: 1,
     price: 0,
   });
+  const [errors, setErrors] = useState<{ quantity?: string; productId?: string }>({});
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
-    console.log(form)
-    onSubmit(form, transactionType);
-    onClose();
+
+  const handleSubmit = async () => {
+    const product = products.find((p) => p.productId === form.productId);
+    const newErrors: any = {};
+  
+    if (!form.productId) newErrors.productId = "Please select a product.";
+    if (form.quantity <= 0) newErrors.quantity = "Quantity must be greater than 0.";
+    if (
+      transactionType === "sale" &&
+      product &&
+      form.quantity > product.stock
+    )
+      newErrors.quantity = `Cannot sell more than available stock (${product.stock}).`;
+  
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length > 0) return;
+    try {
+      setLoading(true);
+      await onSubmit(form, transactionType);
+      onClose();
+    } finally {
+      setLoading(false);
+    }
   };
-
+console.log(products)
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>
         {transactionType === "sale" ? "New Sale" : "New Purchase"}
       </DialogTitle>
-      <DialogContent className="space-y-4">
+      <DialogContent>
+  <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem", paddingTop: "0.5rem" }}>
+
         <FormControl fullWidth>
           <InputLabel>Transaction Type</InputLabel>
           <Select
@@ -65,14 +88,28 @@ export default function TransactionModal({
           <InputLabel>Product</InputLabel>
           <Select
             value={form.productId}
-            onChange={(e) => setForm({ ...form, productId: e.target.value })}
+            // onChange={(e) => setForm({ ...form, productId: e.target.value })}
+            onChange={(e) => {
+              const selectedId = e.target.value;
+              const product = products.find((p) => p.productId === selectedId);
+              setForm({
+                ...form,
+                productId: selectedId,
+                price: product ?  (transactionType === "sale" ? product?.variants[0]?.sellingPrice : product?.variants[0]?.purchasePrice) : 0, // default to product price
+              });
+              
+            setErrors({ ...errors, productId: "" });
+            }}
           >
             {products.map((p) => (
               <MenuItem key={p.productId} value={p.productId}>
-                {p.name}
+                {p.name} (Stock: {p?.variants[0]?.stockQuantity})
               </MenuItem>
             ))}
           </Select>
+          {errors.productId && (
+          <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.productId}</p>
+           )}
         </FormControl>
 
         <TextField
@@ -80,7 +117,26 @@ export default function TransactionModal({
           label="Quantity"
           fullWidth
           value={form.quantity}
-          onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+          error={!!errors.quantity}
+          helperText={errors.quantity}
+          // onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
+          onChange={(e) => {
+            const qty = Number(e.target.value);
+            let err = "";
+            const product = products.find((p) => p.productId === form.productId);
+        
+            if (!form.productId) err = "Select a product first.";
+            else if (qty <= 0) err = "Quantity must be greater than 0.";
+            else if (
+              transactionType === "sale" &&
+              product &&
+              qty > product.stock
+            )
+              err = `Cannot sell more than available stock (${product.stock}).`;
+        
+            setErrors({ ...errors, quantity: err });
+            setForm({ ...form, quantity: qty });
+          }}
         />
 
         <TextField
@@ -90,11 +146,15 @@ export default function TransactionModal({
           value={form.price}
           onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
         />
-      </DialogContent>
+        </div>
+        </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSubmit}>
-          {transactionType === "sale" ? "Record Sale" : "Record Purchase"}
+        <Button variant="contained" onClick={handleSubmit}   
+          disabled={loading || !form.productId || form.quantity <= 0 || !!errors.quantity}>
+          {loading
+    ? (transactionType === "sale" ? "Recording Sale..." : "Recording Purchase...")
+    : (transactionType === "sale" ? "Record Sale" : "Record Purchase")}
         </Button>
       </DialogActions>
     </Dialog>

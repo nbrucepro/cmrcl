@@ -24,7 +24,7 @@ const Dashboard = () => {
       {/* <div className="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8"> */}
       <CardSalesSummary />
       <CardPurchaseSummary />
-      <CardExpenseSummary />
+      {/* <CardExpenseSummary /> */}
       {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-6"> */}
       <StatCard
         title="Customer & Expenses"

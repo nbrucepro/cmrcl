@@ -6,7 +6,7 @@ import { Bell, Menu, Moon, Settings, Sun, LogOut } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
@@ -18,9 +18,21 @@ const Navbar = () => {
   const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   const [user, setUser] = useState({ name: "Admin" }); // default fallback
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef: any = useRef(null);
+  useEffect(() => {
+    const handleClickOutside = (event: any) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Toggle sidebar and dark mode
-  const toggleSidebar = () => dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
+  const toggleSidebar = () =>
+    dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
   const toggleDarkMode = () => dispatch(setIsDarkMode(!isDarkMode));
 
   // Get user info from token/localStorage
@@ -85,37 +97,46 @@ const Navbar = () => {
           <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" />
 
           {/* USER INFO */}
-          <div className="flex items-center gap-3 group relative">
-            <Image
-              src="https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/avatar-icon.svg"
-              alt="Profile"
-              width={45}
-              height={45}
-              className="rounded-full h-full object-cover"
-              unoptimized
-            />
-            <span className="font-semibold">{user.name}</span>
+          <div className="relative flex items-center gap-3 cursor-pointer" ref={dropdownRef}>
+            <button
+              onClick={() => setDropdownOpen((prev) => !prev)}
+              className="flex items-center gap-3 focus:outline-none cursor-pointer"
+            >
+              <Image
+                src="https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/avatar-icon.svg"
+                alt="Profile"
+                width={45}
+                height={45}
+                className="rounded-full h-full object-cover"
+                unoptimized
+              />
+              <span className="font-semibold">{user.name}</span>
+            </button>
 
-            {/* DROPDOWN MENU */}
-            <div className="absolute hidden group-hover:flex flex-col top-12 right-0 bg-white shadow-lg rounded-xl p-3 w-40 z-50">
-              <Link
-                href="/inv/settings"
-                className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition"
-              >
-                <Settings size={18} className="text-gray-600" /> Settings
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex cursor-pointer items-center gap-2 px-3 py-2 text-red-600 hover:bg-gray-100 rounded-md transition"
-              >
-                <LogOut size={18} /> Logout
-              </button>
-            </div>
+            {dropdownOpen && (
+              <div className="absolute flex flex-col top-14 right-0 bg-white shadow-lg rounded-xl p-3 w-44 z-50">
+                <button
+                  className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-gray-100 transition"
+                  onClick={() => setDropdownOpen(false)}
+                >
+                  <Settings size={18} className="text-gray-600" /> Settings
+                </button>
+                <button
+                  onClick={handleLogout}
+                  className="flex cursor-pointer items-center gap-2 px-3 py-2 text-red-600 hover:bg-gray-100 rounded-md transition"
+                >
+                  <LogOut size={18} /> Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         <Link href="/inv/settings">
-          <Settings className="cursor-pointer text-gray-500 md:hidden" size={24} />
+          <Settings
+            className="cursor-pointer text-gray-500 md:hidden"
+            size={24}
+          />
         </Link>
       </div>
     </div>

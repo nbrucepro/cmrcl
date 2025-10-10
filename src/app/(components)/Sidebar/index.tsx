@@ -17,6 +17,18 @@ import {
   ArrowUpCircle,
   Tags,
 } from "lucide-react";
+import {
+  LayoutDashboard,
+  Boxes,
+  Package,
+  ShoppingCart,
+  Receipt,
+  BarChart3,
+  DollarSign,
+  Settings2,
+  Users,
+} from "lucide-react";
+
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -183,12 +195,12 @@ const Sidebar = () => {
       <div className="flex-grow mt-8">
         <SidebarLink
           href="/inv/dashboard"
-          icon={Layout}
+          icon={LayoutDashboard}
           label="Dashboard"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
-         icon={Archive}
+         icon={Boxes}
          label="Inventory"
          isCollapsed={isSidebarCollapsed}
          openKey="inventory"
@@ -197,21 +209,21 @@ const Sidebar = () => {
         >
           <SidebarLink
             href="/inv/inventory"
-            icon={Archive}
+            icon={Package}
             label="All Logs"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
           <SidebarLink
             href="/inv/inventory/purchases"
-            icon={CircleDollarSign}
+            icon={ShoppingCart}
             label="Purchases"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
           />
           <SidebarLink
             href="/inv/inventory/sales"
-            icon={CircleDollarSign}
+            icon={Receipt}
             label="Sales"
             isCollapsed={isSidebarCollapsed}
             isChild={true}
@@ -220,13 +232,13 @@ const Sidebar = () => {
 
         <SidebarLink
           href="/inv/products"
-          icon={Clipboard}
+          icon={Package}
           label="Products"
           isCollapsed={isSidebarCollapsed}
         />
         <SidebarLink
           href="/inv/profit-loss"
-          icon={Clipboard}
+          icon={BarChart3}
           label="Profits & loss"
           isCollapsed={isSidebarCollapsed}
         />

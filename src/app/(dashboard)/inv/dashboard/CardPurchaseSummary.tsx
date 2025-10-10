@@ -1,10 +1,12 @@
+"use client";
+
 import { useGetDashboardMetricsQuery } from "@/state/api";
-import { TrendingDown, TrendingUp } from "lucide-react";
-import numeral from "numeral";
-import React from "react";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import React, { useState } from "react";
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -13,15 +15,53 @@ import {
 import Loader from "../../../(components)/common/Loader";
 
 const CardPurchaseSummary = () => {
-  const { data, isLoading } = useGetDashboardMetricsQuery();
+  const { data, isLoading, isError } = useGetDashboardMetricsQuery();
   const purchaseData = data?.purchaseSummary || [];
+  const [timeframe, setTimeframe] = useState("daily");
 
-  const lastDataPoint = purchaseData[purchaseData.length - 1] || null;
+  // Calculate totals and insights
+  const totalPurchased =
+    purchaseData.reduce((acc, curr) => acc + curr.totalPurchased, 0) || 0;
+
+  const avgChangePercentage =
+    purchaseData.reduce((acc, curr, _, arr) => acc + curr.changePercentage! / arr.length, 0) || 0;
+
+  const highestPurchaseData = purchaseData.reduce((acc, curr) => {
+    return acc.totalPurchased > curr.totalPurchased ? acc : curr;
+  }, purchaseData[0] || {});
+
+  const highestPurchaseDate = highestPurchaseData.date
+  ? new Date(highestPurchaseData.date).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "numeric",
+      year: "2-digit",
+    })
+  : "N/A";
+
+
+  if (isError) return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+    {/* <img
+      src="/images/error-state.svg"
+      alt="Error illustration"
+      className="w-48 mb-4 opacity-80"
+    /> */}
+    <h2 className="text-lg font-semibold text-red-600 mb-2">
+      Oops! Couldn’t load data
+    </h2>
+    <p className="text-gray-500 mb-4 max-w-md">
+      Something went wrong while fetching logs data. Please check your
+      internet connection or try again.
+    </p>
+  </div>
+    )
 
   return (
-    <div className="flex flex-col justify-between row-span-2 xl:row-span-3 col-span-1 md:col-span-2 xl:col-span-1 bg-white shadow-md rounded-2xl">
+    <div className="row-span-3 xl:row-span-6 bg-white shadow-md rounded-2xl flex flex-col justify-between">
       {isLoading ? (
-        <div className="m-5"> <Loader /></div>
+        <div className="m-5">
+          <Loader />
+        </div>
       ) : (
         <>
           {/* HEADER */}
@@ -35,62 +75,95 @@ const CardPurchaseSummary = () => {
           {/* BODY */}
           <div>
             {/* BODY HEADER */}
-            <div className="mb-4 mt-7 px-7">
-              <p className="text-xs text-gray-400">Purchased</p>
-              <div className="flex items-center">
-                <p className="text-2xl font-bold">
-                  {lastDataPoint
-                    ? numeral(lastDataPoint.totalPurchased).format("$0.00a")
-                    : "0"}
-                </p>
-                {lastDataPoint && (
-                  <p
-                    className={`text-sm ${
-                      lastDataPoint.changePercentage! >= 0
-                        ? "text-green-500"
-                        : "text-red-500"
-                    } flex ml-3`}
-                  >
-                    {lastDataPoint.changePercentage! >= 0 ? (
-                      <TrendingUp className="w-5 h-5 mr-1" />
-                    ) : (
-                      <TrendingDown className="w-5 h-5 mr-1" />
-                    )}
-                    {Math.abs(lastDataPoint.changePercentage!)}%
-                  </p>
-                )}
+            <div className="flex justify-between items-center mb-6 px-7 mt-5">
+              <div className="text-lg font-medium">
+                <p className="text-xs text-gray-400">Total Purchased Value</p>
+                <span className="text-2xl font-extrabold">
+                  $
+                  {(totalPurchased / 1000).toLocaleString("en", {
+                    maximumFractionDigits: 2,
+                  })}
+                  k
+                </span>
+                <span
+                  className={`ml-2 text-sm ${
+                    avgChangePercentage >= 0 ? "text-green-500" : "text-red-500"
+                  }`}
+                >
+                  {avgChangePercentage >= 0 ? (
+                    <TrendingUp className="inline w-4 h-4 mr-1" />
+                  ) : (
+                    <TrendingDown className="inline w-4 h-4 mr-1" />
+                  )}
+                  {avgChangePercentage.toFixed(2)}%
+                </span>
               </div>
-            </div>
-            {/* CHART */}
-            <ResponsiveContainer width="100%" height={200} className="p-2">
-              <AreaChart
-                data={purchaseData}
-                margin={{ top: 0, right: 0, left: -50, bottom: 45 }}
+              <select
+                className="shadow-sm border border-gray-300 bg-white p-2 rounded"
+                value={timeframe}
+                onChange={(e) => setTimeframe(e.target.value)}
               >
-                <XAxis dataKey="date" tick={false} axisLine={false} />
-                <YAxis tickLine={false} tick={false} axisLine={false} />
-                <Tooltip
-                  formatter={(value: number) => [
-                    `$${value.toLocaleString("en")}`,
-                  ]}
-                  labelFormatter={(label) => {
-                    const date = new Date(label);
-                    return date.toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    });
-                  }}
-                />
-                <Area
-                  type="linear"
+                <option value="daily">Daily</option>
+                {/* <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option> */}
+              </select>
+            </div>
+
+            {/* CHART */}
+            <ResponsiveContainer width="100%" height={350} className="px-7">
+              <BarChart
+                data={purchaseData}
+                margin={{ top: 0, right: 0, left: -25, bottom: 0 }}
+              >
+                <CartesianGrid strokeDasharray="" vertical={false} />
+                <XAxis
+                dataKey="date"
+                tick={{ fontSize: 12, dx: -1 }}
+                tickFormatter={(value) => {
+                  const date = new Date(value);
+                  return `${date.getDate()}/${date.getMonth() + 1}/${String(
+                    date.getUTCFullYear()
+                  ).slice(2)}`;
+                }}
+              />
+
+               <YAxis
+                tickFormatter={(value) => `$ ${(value / 1000).toFixed(0)}k`}
+                tick={{ fontSize: 12, dx: -1 }}
+                tickLine={false}
+                axisLine={false}
+              />
+
+<Tooltip
+  formatter={(value: number) => [`$ ${value.toLocaleString("en")}`]}
+  labelFormatter={(label) => {
+    const date = new Date(label);
+    return `${date.getDate()}/${date.getMonth() + 1}/${String(
+      date.getFullYear()
+    ).slice(2)}`;
+  }}
+/>
+
+                <Bar
                   dataKey="totalPurchased"
-                  stroke="#8884d8"
-                  fill="#8884d8"
-                  dot={true}
+                  fill="#10b981" // green tone for purchase
+                  barSize={10}
+                  radius={[10, 10, 0, 0]}
                 />
-              </AreaChart>
+              </BarChart>
             </ResponsiveContainer>
+          </div>
+
+          {/* FOOTER */}
+          <div>
+            <hr />
+            <div className="flex justify-between items-center mt-6 text-sm px-7 mb-4">
+              <p>{purchaseData.length || 0} days</p>
+              <p className="text-sm">
+                Highest Purchase Date:{" "}
+                <span className="font-bold">{highestPurchaseDate}</span>
+              </p>
+            </div>
           </div>
         </>
       )}

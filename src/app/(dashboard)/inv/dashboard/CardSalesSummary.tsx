@@ -16,7 +16,7 @@ const CardSalesSummary = () => {
   const { data, isLoading, isError } = useGetDashboardMetricsQuery();
   const salesData = data?.salesSummary || [];
 
-  const [timeframe, setTimeframe] = useState("weekly");
+  const [timeframe, setTimeframe] = useState("daily");
 
   const totalValueSum =
     salesData.reduce((acc, curr) => acc + curr.totalValue, 0) || 0;
@@ -31,15 +31,31 @@ const CardSalesSummary = () => {
   }, salesData[0] || {});
 
   const highestValueDate = highestValueData.date
-    ? new Date(highestValueData.date).toLocaleDateString("en-US", {
-        month: "numeric",
-        day: "numeric",
-        year: "2-digit",
-      })
-    : "N/A";
+  ? new Date(highestValueData.date).toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "numeric",
+      year: "2-digit",
+    })
+  : "N/A";
+
 
   if (isError) {
-    return <div className="m-5">Network error, reload!</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+      {/* <img
+        src="/images/error-state.svg"
+        alt="Error illustration"
+        className="w-48 mb-4 opacity-80"
+      /> */}
+      <h2 className="text-lg font-semibold text-red-600 mb-2">
+        Oops! Couldn’t load data
+      </h2>
+      <p className="text-gray-500 mb-4 max-w-md">
+        Something went wrong while fetching logs data. Please check your
+        internet connection or try again.
+      </p>
+    </div>
+    );
   }
 
   return (
@@ -63,11 +79,11 @@ const CardSalesSummary = () => {
               <div className="text-lg font-medium">
                 <p className="text-xs text-gray-400">Value</p>
                 <span className="text-2xl font-extrabold">
-                  $
-                  {(totalValueSum / 1000000).toLocaleString("en", {
-                    maximumFractionDigits: 2,
-                  })}
-                  m
+                $
+  {(totalValueSum / 1000).toLocaleString("en", {
+    maximumFractionDigits: 2,
+  })}
+  k
                 </span>
                 <span className="text-green-500 text-sm ml-2">
                   <TrendingUp className="inline w-4 h-4 mr-1" />
@@ -82,8 +98,8 @@ const CardSalesSummary = () => {
                 }}
               >
                 <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
+                {/* <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option> */}
               </select>
             </div>
             {/* CHART */}
@@ -97,29 +113,28 @@ const CardSalesSummary = () => {
                   dataKey="date"
                   tickFormatter={(value) => {
                     const date = new Date(value);
-                    return `${date.getMonth() + 1}/${date.getDate()}`;
+                    return `${date.getDate()}/${date.getMonth() + 1}/${String(
+                      date.getFullYear()
+                    ).slice(2)}`;                
                   }}
+                  tick={{ fontSize: 12, dx: -1 }}
                 />
                 <YAxis
                   tickFormatter={(value) => {
-                    return `$ ${(value / 1000000).toFixed(0)}m`;
+                    return `$ ${(value / 1000).toFixed(0)}k`;
                   }}
                   tick={{ fontSize: 12, dx: -1 }}
                   tickLine={false}
                   axisLine={false}
                 />
                 <Tooltip
-                  formatter={(value: number) => [
-                    `$ ${value.toLocaleString("en")}`,
-                  ]}
-                  labelFormatter={(label) => {
-                    const date = new Date(label);
-                    return date.toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    });
-                  }}
+  formatter={(value: number) => [`$ ${value.toLocaleString("en")}`]}
+  labelFormatter={(label) => {
+    const date = new Date(label);
+    return `${date.getDate()}/${date.getMonth() + 1}/${String(
+      date.getFullYear()
+    ).slice(2)}`;
+  }}
                 />
                 <Bar
                   dataKey="totalValue"

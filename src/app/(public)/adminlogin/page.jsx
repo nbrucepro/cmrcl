@@ -95,7 +95,7 @@ export default function AdminLogin() {
 
         <button
           onClick={handleLogin}
-          disabled={loading} // ✅ disable when loading
+          disabled={loading} 
           className={`w-full py-2.5 rounded-lg text-white font-medium transition-all duration-200 cursor-pointer ${
             loading
               ? "bg-blue-400 cursor-not-allowed"

@@ -1,12 +1,19 @@
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+"use client";
 
-export default async function Home() {
-  const token = (await cookies()).get("adminToken")?.value;
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-  if (!token) {
-    redirect("/adminlogin");
-  }else{
-    redirect("/inv/dashboard");
-  }
+export default function Home() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/adminlogin");
+    } else {
+      router.push("/inv/dashboard");
+    }
+  }, [router]);
+
+  return null;
 }

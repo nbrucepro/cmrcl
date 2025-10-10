@@ -14,6 +14,11 @@ import {
   Collapse,
   Divider,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import {
   Edit,
@@ -22,18 +27,24 @@ import {
   AddCircle,
   ExpandMore,
   ExpandLess,
+  RestartAlt,
 } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useCreateProductMutation, useGetProductsQuery,useUpdateProductMutation,useDeleteProductMutation } from "@/state/api";
 import CreateProductModal from "./CreateProductModal";
+import UpdateProductModal from "./UpdateProductModal";
 import Header from "@/app/(components)/Header";
 import Image from "next/image";
 import Loader from "../../../(components)/common/Loader";
+import toast from "react-hot-toast";
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
 
   const { data: products, isLoading, isError, refetch } =
     useGetProductsQuery(searchTerm);
@@ -56,8 +67,13 @@ const Products = () => {
   }, [products, searchTerm, categoryFilter]);
 
   const handleCreateProduct = async (productData) => {
-    await createProduct(productData);
-    refetch();
+    try {
+      await createProduct(productData).unwrap();
+      toast.success(" Product created successfully!");
+      refetch();
+    } catch (err) {
+      toast.error(err?.data?.message || " Failed to create product");
+    }
   };
 
   const handleDownload = (product) => {
@@ -71,28 +87,52 @@ const Products = () => {
     link.click();
   };
 
-  const handleUpdate = async (productId) => {
-      const name = prompt("Enter new name:");
-      if (!name) return;
-      await updateProduct({ id: productId, name }).unwrap();
-      refetch();
-  };
+ const [editProduct, setEditProduct] = useState(null);
+
+ const handleUpdate = (product) => {
+  setEditProduct(product);
+};
+
+
+const handleUpdateSave = async (updatedData) => {
+  try {
+    await updateProduct({
+      id: updatedData.productId,
+      data: updatedData,
+    }).unwrap();
+    toast.success("Product updated successfully!");
+    setEditProduct(null);
+    refetch();
+  } catch (err) {
+    toast.error(err?.data?.message || "Failed to update product");
+  }
+}
     
-  const handleDelete = async (productId) => {
-      if (!confirm("Are you sure you want to delete this product?")) return;
-      await deleteProduct(productId).unwrap();
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      await deleteProduct(deleteId).unwrap();
+      toast.success("🗑️ Product deleted successfully!");
+      setDeleteId(null);
       refetch();
-    };
+    } catch (err) {
+      toast.error(err?.data?.message || " Failed to delete product");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+  
 
   const columns = [
     { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
     {
       field: "description",
       headerName: "Description",
-      flex: 1.5,
+      flex: 1,
       minWidth: 200,
       renderCell: (params) => (
-        <Typography color="text.secondary" noWrap>
+        <Typography color="text.secondary text.center" noWrap>
           {params.row.description || "—"}
         </Typography>
       ),
@@ -130,12 +170,12 @@ const Products = () => {
         </Typography>
       ),
     },
-    {
-      field: "variants",
-      headerName: "Variants",
-      width: 120,
-      renderCell: (params) => params?.variants?.length || 0,
-    },
+    // {
+    //   field: "variants",
+    //   headerName: "Variants",
+    //   width: 120,
+    //   renderCell: (params) => params?.variants?.length || 0,
+    // },
     {
       field: "createdAt",
       headerName: "Created At",
@@ -146,33 +186,37 @@ const Products = () => {
     {
       field: "actions",
       headerName: "Actions",
-      width: 150,
+      width: 100,
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
           <Tooltip title="Edit">
-            <IconButton
-              color="primary"
-              size="small"
-              onClick={() => handleUpdate(params.row.productId)}
-            >
-              <Edit fontSize="small" />
-            </IconButton>
+<IconButton
+  color="primary"
+  size="small"
+  onClick={() => handleUpdate(params.row)}
+>
+  <Edit fontSize="small" />
+</IconButton>
+
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton
-              color="error"
-              size="small"
-              onClick={() => handleDelete(params.row.productId)}
-            >
-              <Delete fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Download JSON">
-            <IconButton size="small" onClick={() => handleDownload(params.row)}>
-              <Download fontSize="small" />
-            </IconButton>
-          </Tooltip>
+  <span>
+    <IconButton
+      color="error"
+      size="small"
+      onClick={() => setDeleteId(params.row.productId)}
+      disabled={isDeleting && deleteId === params.row.productId}
+    >
+      {isDeleting && deleteId === params.row.productId ? (
+        <CircularProgress size={18} color="error" />
+      ) : (
+        <Delete fontSize="small" />
+      )}
+    </IconButton>
+  </span>
+</Tooltip>
+
         </Stack>
       ),
     },
@@ -181,9 +225,28 @@ const Products = () => {
   if (isLoading) return <Loader />;
   if (isError)
     return (
-      <Typography color="error" align="center" sx={{ mt: 4 }}>
-        Network error reload!
-      </Typography>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+      {/* <img
+        src="/images/error-state.svg"
+        alt="Error illustration"
+        className="w-48 mb-4 opacity-80"
+      /> */}
+      <h2 className="text-lg font-semibold text-red-600 mb-2">
+        Oops! Couldn’t load data
+      </h2>
+      <p className="text-gray-500 mb-4 max-w-md">
+        Something went wrong while fetching logs data. Please check your
+        internet connection or try again.
+      </p>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={() => refetch()}
+        startIcon={<RestartAlt />}
+      >
+        Retry
+      </Button>
+    </div>
     );
 
   return (
@@ -238,23 +301,33 @@ const Products = () => {
 
       {/* MAIN TABLE */}
       <Paper elevation={3} sx={{ borderRadius: 3, overflow: "hidden" }}>
-        <DataGrid
-          autoHeight
-          rows={filteredProducts || []}
-          getRowId={(row) => row.productId}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[10, 20, 50]}
-          disableRowSelectionOnClick
-          hideFooterSelectedRowCount
-          sx={{
-            "& .MuiDataGrid-columnHeaders": {
-              bgcolor: "#f9fafb",
-              fontWeight: "bold",
-            },
-            "& .MuiDataGrid-cell": { borderBottom: "1px solid #eee" },
-          }}
-        />
+      <DataGrid
+  autoHeight
+  rows={filteredProducts || []}
+  getRowId={(row) => row.productId}
+  columns={columns}
+  pageSize={10}
+  rowsPerPageOptions={[10, 20, 50]}
+  disableRowSelectionOnClick
+  hideFooterSelectedRowCount
+  sx={{
+    "& .MuiDataGrid-columnHeaders": {
+      bgcolor: "#f9fafb",
+      fontWeight: "bold",
+    },
+    "& .MuiDataGrid-cell": {
+      borderBottom: "1px solid #eee",
+      display: "flex",
+      alignItems: "center",
+    },
+    "& .MuiDataGrid-cellContent": {
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+  }}
+/>
+
       </Paper>
 
       {/* CREATE MODAL */}
@@ -263,6 +336,36 @@ const Products = () => {
         onClose={() => setIsModalOpen(false)}
         onCreate={handleCreateProduct}
       />
+      <UpdateProductModal
+  open={Boolean(editProduct)}
+  onClose={() => setEditProduct(null)}
+  product={editProduct}
+  onUpdate={handleUpdateSave}
+/>
+      <Dialog
+  open={Boolean(deleteId)}
+  onClose={() => !isDeleting && setDeleteId(null)}
+>
+  <DialogTitle>Confirm Deletion</DialogTitle>
+  <DialogContent>
+    <Typography>Are you sure you want to delete this product?</Typography>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setDeleteId(null)} disabled={isDeleting}>
+      Cancel
+    </Button>
+    <Button
+      onClick={handleDelete}
+      color="error"
+      variant="contained"
+      disabled={isDeleting}
+      startIcon={isDeleting ? <CircularProgress size={18} /> : <Delete />}
+    >
+      {isDeleting ? "Deleting..." : "Delete"}
+    </Button>
+  </DialogActions>
+</Dialog>
+
     </Box>
   );
 };

@@ -17,6 +17,10 @@ import { Add, Delete } from "@mui/icons-material";
 import { v4 } from "uuid";
 
 const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
+  // inside the component
+const [loading, setLoading] = useState(false);
+const [otherType, setOtherType] = useState(""); // new
+
   const [formData, setFormData] = useState({
     productId: v4(),
     name: "",
@@ -40,27 +44,72 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     },
   ]);
   const [errors, setErrors] = useState({});
+  const resetForm = () => {
+    setFormData({
+      productId: v4(),
+      name: "",
+      description: "",
+      price: 0,
+      categoryId: "",
+      stockQuantity: 0,
+      rating: 0,
+    });
+    setVariants([
+      {
+        sku: "",
+        purchasePrice: 0,
+        sellingPrice: 0,
+        stockQuantity: 0,
+        attributes: [
+          { name: "Length", value: 0 },
+          { name: "width", value: 0 },
+        ],
+      },
+    ]);
+    setErrors({});
+  };
+  
   const validateForm = () => {
     const newErrors = {};
   
-    if (!formData.name.trim()) newErrors.name = "Type is required";
+    if (!formData.categoryId || formData.categoryId === "Select Category") {
+      newErrors.categoryId = "Category is required";
+    }
+    if (!formData.name.trim() || formData.name === "Select Type") {
+      newErrors.name = "Type is required";
+    }
   
     variants.forEach((variant, vIndex) => {
       if (!variant.sku.trim())
         newErrors[`variant_sku_${vIndex}`] = "SKU is required";
       if (variant.stockQuantity < 0)
-        newErrors[`variant_stockPrice_${vIndex}`] = "Variant stock cannot be negative";
+        newErrors[`variant_stockQuantity_${vIndex}`] = "Variant stock cannot be negative";
         if (variant.purchasePrice <= 0)
         newErrors[`variant_purchasePrice_${vIndex}`] = "Purchase price must be greater than 0";
       if (variant.sellingPrice <= 0)
         newErrors[`variant_sellingPrice_${vIndex}`] = "Selling price must be greater than 0";
       
-      variant.attributes.forEach((attr, aIndex) => {
-        if (!attr.name.trim())
-          newErrors[`attr_name_${vIndex}_${aIndex}`] = "Attribute name required";
-        if (attr.value.trim<=0)
-          newErrors[`attr_value_${vIndex}_${aIndex}`] = "Attribute value must be greater than 0";
-      });
+      // variant.attributes.forEach((attr, aIndex) => {
+      //   const validNames = ["Width", "Length"];
+      //   if (!attr.name.trim())
+      //   newErrors[`attr_name_${vIndex}_${aIndex}`] = "Attribute name required";
+      //   else if (!validNames.includes(attr.name))
+      //   newErrors[`attr_name_${vIndex}_${aIndex}`] = "Attribute name must be 'Width' or 'Length'";
+
+      //   if (attr.value === "" || parseFloat(attr.value) <= 0)
+      //     newErrors[`attr_value_${vIndex}_${aIndex}`] = "Attribute value must be greater than 0";
+      //   });
+      if (formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
+        const requiredNames = ["Width", "Length"];
+  
+        requiredNames.forEach((reqName) => {
+          const attr = variant.attributes.find(a => a.name === reqName);
+          if (!attr)
+            newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
+          else if (attr.value === "" || parseFloat(attr.value) <= 0)
+            newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} must be greater than 0`;
+        });
+      }
     });
   
     setErrors(newErrors);
@@ -71,13 +120,57 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   // 🔹 Input handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
+    // setFormData({
+    //   ...formData,
+    //   [name]:
+    //     name === "price" || name === "stockQuantity" || name === "rating"
+    //       ? parseFloat(value)
+    //       : value,
+    // });
     setFormData({
       ...formData,
       [name]:
-        name === "price" || name === "stockQuantity" || name === "rating"
+        ["price", "stockQuantity", "rating"].includes(name)
           ? parseFloat(value)
           : value,
     });
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    if (name === "categoryId") {
+      if (value === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
+        // Door → add Width & Length
+        setVariants([
+          {
+            sku: "",
+            purchasePrice: 0,
+            sellingPrice: 0,
+            stockQuantity: 0,
+            attributes: [
+              { name: "Width", value: 0 },
+              { name: "Length", value: 0 },
+            ],
+          },
+        ]);
+      } else if (value === "b52d030f-1309-4099-bc85-b3d040fb9806") {
+        // Lock → no attributes
+        setVariants([
+          {
+            sku: "",
+            purchasePrice: 0,
+            sellingPrice: 0,
+            stockQuantity: 0,
+            attributes: [],
+          },
+        ]);
+      }
+    }
   };
 
   const handleVariantChange = (index, e) => {
@@ -90,6 +183,15 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
         ? parseFloat(value)
         : value;
     setVariants(updated);
+    const errorKey = `variant_${name}_${index}`;
+    if (errors[errorKey]) {
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[errorKey];
+        return newErrors;
+      });
+    }
+  
   };
 
   const handleAttributeChange = (
@@ -101,6 +203,15 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     const updated = [...variants];
     updated[variantIndex].attributes[attrIndex][name] = value;
     setVariants(updated);
+  const attrName = updated[variantIndex].attributes[attrIndex].name;
+  const errorKey = `attr_${attrName}_${variantIndex}`;
+  if (errors[errorKey]) {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[errorKey];
+      return newErrors;
+    });
+  }
   };
 
   // 🔹 Add/remove variant or attribute
@@ -127,19 +238,32 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     setVariants(updated);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit =async (e) => {
     e.preventDefault();
-    console.log(errors)
-    console.log(formData,variants,validateForm())
     if (!validateForm()) return;
-    onCreate({ ...formData, variants });
+    const finalFormData = {
+      ...formData,
+      name: formData.name === "Other" ? otherType : formData.name,
+    };
+  
+    setLoading(true);
+    try {
+      await onCreate({ ...finalFormData, variants });
+      onClose();
+    } finally {
+      setLoading(false);
+    }
+  };
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
+  
 
   return (
     <Dialog
       open={isOpen}
-      onClose={onClose}
+      onClose={handleClose}
       fullWidth
       maxWidth="md"
       sx={{ "& .MuiDialog-paper": { borderRadius: 3,p:1 } }}
@@ -163,6 +287,8 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     name="categoryId"
     value={formData.categoryId || ""}
     onChange={handleChange}
+    error={!!errors.categoryId}
+    helperText={errors.categoryId}
     SelectProps={{ native: true }}
     required
   >
@@ -181,16 +307,31 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   value={formData.name}
   error={!!errors.name}
   helperText={errors.name}
-  onChange={handleChange}
+  onChange={(e) => {
+    handleChange(e); // existing
+    if (e.target.value !== "Other") setOtherType(""); // reset if not other
+  }}
   SelectProps={{ native: true }}
 >
 <option key="Select Type" value="Select Type">Select Type</option>
   {formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc"
-    ? doorTypes.map((type) => <option key={type} value={type}>{type}</option>)
+    ? [...doorTypes, "Other"].map((type) => <option key={type} value={type}>{type}</option>)
     : formData.categoryId === "b52d030f-1309-4099-bc85-b3d040fb9806"
-    ? lockTypes.map((type) => <option key={type} value={type}>{type}</option>)
+    ? [...lockTypes, "Other"].map((type) => <option key={type} value={type}>{type}</option>)
     : null}
-</TextField>
+      </TextField>
+    {formData.name === "Other" && (
+  <Grid className="mt-4" item xs={12} sm={3}>
+    <TextField
+      fullWidth
+      label="Specify Type"
+      value={otherType}
+      onChange={(e) => setOtherType(e.target.value)}
+      required
+    />
+  </Grid>
+)}
+
             </Grid>
             <Grid item xs={12} sm={3}>
               <TextField
@@ -282,9 +423,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
               </Grid>
 
               {/* ATTRIBUTES */}
-              {formData.categoryId == "door" && (
+              {formData.categoryId && formData.categoryId == "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc" && (
               <Typography variant="subtitle2" sx={{ mt: 2, fontWeight: 500 }}>
-                Attributes
+                Attributes (Door Dimensions)
               </Typography>
               )}
 
@@ -299,16 +440,17 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                       error={!!errors[`attr_name_${vIndex}_${aIndex}`]}
                       helperText={errors[`attr_name_${vIndex}_${aIndex}`]}
                       onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
+                      InputProps={{ readOnly: true }}
                     />
                   </Grid>
                   <Grid item xs={5}>
                     <TextField
                       fullWidth
-                      label="Value"
+                      label={`${attr.name} Value`}
                       name="value"
                       value={attr.value}
-                      error={!!errors[`attr_value_${vIndex}_${aIndex}`]}
-                      helperText={errors[`attr_value_${vIndex}_${aIndex}`]}
+                      error={!!errors[`attr_${attr.name}_${vIndex}`]}
+                      helperText={errors[`attr_${attr.name}_${vIndex}`]}
                       onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
                     />
                   </Grid>
@@ -346,7 +488,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
             </Box>
           ))}
 
-          <Button
+          {/* <Button
             variant="contained"
             color="success"
             startIcon={<Add />}
@@ -354,17 +496,24 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
             sx={{ mt: 3 }}
           >
             Add Variant
-          </Button>
+          </Button> */}
         </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={onClose} color="inherit" variant="outlined">
+        <Button onClick={handleClose} color="inherit" variant="outlined">
           Cancel
         </Button>
-        <Button type="submit" variant="contained" color="primary" onClick={handleSubmit}>
-          Create Product
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Create Product"}
         </Button>
+
       </DialogActions>
     </Dialog>
   );

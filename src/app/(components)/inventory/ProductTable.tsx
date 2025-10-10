@@ -59,7 +59,6 @@ export default function ProductTable({
     }))
   );
 
-  console.log(rows); // ✅ flattened data preview
 
   return (
     <DataGrid

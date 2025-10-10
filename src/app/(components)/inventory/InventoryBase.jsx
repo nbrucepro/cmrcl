@@ -43,7 +43,7 @@ export default function InventoryBase({
       setLogs(data);
       setFilteredLogs(data);
     } catch (err) {
-      toast.error(err.message || `Could not load ${endpoint}`);
+      // toast.error(err.message || `Could not load ${endpoint}`);
     } finally {
       setLoading(false);
     }
@@ -110,67 +110,148 @@ export default function InventoryBase({
     toast.success("Download started");
   };
 
-  if (isError) return <div className="text-center text-red-500">Failed to fetch products</div>;
-
+  if (isLoading || loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader />
+        <p className="mt-3 text-gray-500 text-sm animate-pulse">
+          Loading {title.toLowerCase()} data...
+        </p>
+      </div>
+    );
+  }
+  
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        {/* <img
+          src="/images/error-state.svg"
+          alt="Error illustration"
+          className="w-48 mb-4 opacity-80"
+        /> */}
+        <h2 className="text-lg font-semibold text-red-600 mb-2">
+          Oops! Couldn’t load data
+        </h2>
+        <p className="text-gray-500 mb-4 max-w-md">
+          Something went wrong while fetching logs data. Please check your
+          internet connection or try again.
+        </p>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => refetch()}
+          startIcon={<RestartAlt />}
+        >
+          Retry
+        </Button>
+      </div>
+    );
+  }
+  
   return (
     <div className="flex flex-col">
     <Header name={`${title}`} />
-      <div className="flex md:flex-row flex-col justify-between my-6">
-      <div className="flex flex-wrap items-end gap-3">
-  <TextField
-    label="From"
-    type="date"
-    value={fromDate}
-    onChange={(e) => setFromDate(e.target.value)}
-    InputLabelProps={{ shrink: true }}
-    size="small"
-  />
-  <TextField
-    label="To"
-    type="date"
-    value={toDate}
-    onChange={(e) => setToDate(e.target.value)}
-    InputLabelProps={{ shrink: true }}
-    size="small"
-  />
+    {/* CONTROL BAR */}
+<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 my-6 bg-white/60 backdrop-blur-md shadow-sm p-4 rounded-2xl border border-gray-100">
+  
+  {/* Date Filters */}
+  <div className="flex flex-wrap items-end gap-3">
+    <TextField
+      label="From"
+      type="date"
+      value={fromDate}
+      onChange={(e) => setFromDate(e.target.value)}
+      InputLabelProps={{ shrink: true }}
+      size="small"
+      sx={{ minWidth: 160 }}
+    />
+    <TextField
+      label="To"
+      type="date"
+      value={toDate}
+      onChange={(e) => setToDate(e.target.value)}
+      InputLabelProps={{ shrink: true }}
+      size="small"
+      sx={{ minWidth: 160 }}
+    />
 
-  <Tooltip title="Filter">
-    <Button variant="contained" color="primary" onClick={handleFilter}>
-      <FilterAlt />
-    </Button>
-  </Tooltip>
+    <Tooltip title="Apply Filter">
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<FilterAlt />}
+        onClick={handleFilter}
+        sx={{
+          textTransform: "none",
+          borderRadius: "12px",
+          px: 2.5,
+          py: 1,
+        }}
+      >
+        Filter
+      </Button>
+    </Tooltip>
 
-  <Tooltip title="Reset">
-    <Button variant="outlined" color="secondary" onClick={handleReset}>
-      <RestartAlt />
-    </Button>
-  </Tooltip>
+    <Tooltip title="Reset Filters">
+      <Button
+        variant="outlined"
+        color="secondary"
+        startIcon={<RestartAlt />}
+        onClick={handleReset}
+        sx={{
+          textTransform: "none",
+          borderRadius: "12px",
+          px: 2.5,
+          py: 1,
+        }}
+      >
+        Reset
+      </Button>
+    </Tooltip>
+  </div>
+
+  {/* Action Buttons */}
+  <div className="flex flex-wrap gap-3 md:justify-end">
+    <Tooltip title="Download CSV">
+      <Button
+        variant="contained"
+        color="success"
+        startIcon={<Download />}
+        onClick={handleDownload}
+        sx={{
+          textTransform: "none",
+          borderRadius: "12px",
+          px: 2.5,
+          py: 1,
+        }}
+      >
+        Download
+      </Button>
+    </Tooltip>
+
+    <Tooltip title="New Transaction">
+      <Button
+        variant="contained"
+        startIcon={<AddCircle />}
+        onClick={() => setModalOpen(true)}
+        sx={{
+          background: "linear-gradient(90deg, #2563eb, #1d4ed8)",
+          color: "white",
+          textTransform: "none",
+          fontWeight: 600,
+          borderRadius: "12px",
+          px: 2.8,
+          py: 1.2,
+          "&:hover": { background: "linear-gradient(90deg, #1e40af, #1d4ed8)" },
+          transition: "all 0.2s ease-in-out",
+        }}
+      >
+        New Transaction
+      </Button>
+    </Tooltip>
+  </div>
 </div>
 
-<div className="flex flex-wrap items-end gap-3 md:justify-end">
-  <Tooltip title="Download">
-    <Button
-      variant="contained"
-      color="success"
-      onClick={handleDownload}
-      className="w-full sm:w-auto"
-    >
-      <Download />
-    </Button>
-  </Tooltip>
-
-  <Tooltip title="New Transaction">
-    <Button
-      onClick={() => setModalOpen(true)}
-      className="bg-blue-600 text-white w-full sm:w-auto"
-    >
-      <AddCircle />
-    </Button>
-  </Tooltip>
-</div>
-
-        
-      </div>
 
       <LogsTable rows={enableFilter ? filteredLogs : logs} type={endpoint} loading={loading} />
 

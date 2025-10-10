@@ -9,6 +9,7 @@ import {
 } from "@ant-design/icons";
 import axios from "axios";
 import dayjs from "dayjs";
+import Loader from "@/app/(components)/common/Loader";
 
 const { RangePicker } = DatePicker;
 
@@ -87,8 +88,8 @@ export default function ProfitLossPage() {
       </div>
 
       {data ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card bordered className="shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <Card variant="outlined" className="shadow-sm">
             <Statistic
               title="Total Sales"
               value={data.totalSales}
@@ -97,7 +98,7 @@ export default function ProfitLossPage() {
             />
           </Card>
 
-          <Card bordered className="shadow-sm">
+          <Card variant="outlined" className="shadow-sm">
             <Statistic
               title="Total Purchases"
               value={data.totalPurchases}
@@ -105,17 +106,17 @@ export default function ProfitLossPage() {
               prefix="$"
             />
           </Card>
-
-          <Card bordered className="shadow-sm">
+{/* 
+          <Card variant="outlined" className="shadow-sm">
             <Statistic
               title="Total Expenses"
               value={data.totalExpenses}
               precision={2}
               prefix="$"
             />
-          </Card>
+          </Card> */}
 
-          <Card bordered className="shadow-sm">
+          <Card variant="outlined" className="shadow-sm">
             <Statistic
               title="Net Profit"
               value={data.netProfit}
@@ -132,7 +133,7 @@ export default function ProfitLossPage() {
         </div>
       ) : (
         <div className="text-center mt-10 text-gray-500">
-          No data available for the selected range.
+          <Loader/>
         </div>
       )}
     </div>

@@ -17,9 +17,32 @@ export default function LogsTable({ rows, type,loading, }: { rows: any[]; type: 
       field: "price",
       headerName: type === "sales" ? "Selling Price" : "Unit Cost",
       flex: 1,
-      valueGetter: (_, row) => `$ ${ type === "sales" ? row?.sellingPrice : row?.totalCost}`,
+      valueGetter: (_, row) => `$ ${ row?.totalAmount/row?.quantity}`,
     },
-    { field: "date", headerName: "Date", flex: 1 },
+    {
+      field: "totalAmount",
+      headerName: "Total Amount",
+      flex: 1,
+      valueGetter: (_, row) => `$ ${row?.totalAmount}`,
+    },
+    // { field: "totalAmount", headerName: "Total Amount", flex: 1 },
+    {
+      field: "date",
+      headerName: "Date",
+      flex: 1,
+      valueGetter: (_, row) => {
+        const date = new Date(row?.date);
+        if (isNaN(date.getTime())) return "Invalid Date";
+        return date.toLocaleString(undefined, {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      },
+    },
+    
   ];
   return (
     <DataGrid
