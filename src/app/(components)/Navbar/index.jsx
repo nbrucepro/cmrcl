@@ -11,6 +11,8 @@ import React, { useEffect, useRef, useState } from "react";
 const Navbar = () => {
   const dispatch = useAppDispatch();
   
+  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  
   const pathname = usePathname();
   
   const isDashboard = pathname === "/inv/dashboard";
@@ -47,6 +49,15 @@ const Navbar = () => {
       setUser({ name: storedName });
     }
   }, []);
+  
+useEffect(() => {
+  if (!selectedMonth?.month || !selectedMonth?.year) {
+    dispatch(setSelectedMonth({
+      month: dayjs().month() + 1,
+      year: dayjs().year(),
+    }));
+  }
+}, [dispatch, selectedMonth]);
 
     const handleMonthChange = (date) => {
     setSelectedDate(date);
