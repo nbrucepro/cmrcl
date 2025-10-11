@@ -17,15 +17,21 @@ export default function LogsTable({ rows, type,loading, }: { rows: any[]; type: 
       field: "price",
       headerName: type === "sales" ? "Selling Price" : "Unit Cost",
       flex: 1,
-      valueGetter: (_, row) => `$ ${type === "sales" ? row?.totalAmount/row?.quantity : row?.totalCost/row?.quantity}`,
+      valueGetter: (_, row) => {
+        const amount = type === "sales" ? row?.totalAmount / row?.quantity : row?.totalCost / row?.quantity;
+        return amount != null ? "Rs " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+      },
     },
     {
       field: "totalAmount",
       headerName: "Total Amount",
       flex: 1,
-      valueGetter: (_, row) => `$ ${type === "sales" ? row?.totalAmount : row?.totalCost}`,
+      valueGetter: (_, row) => {
+        const amount = type === "sales" ? row?.totalAmount : row?.totalCost;
+        return amount != null ? "Rs " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+      },
     },
-    // { field: "totalAmount", headerName: "Total Amount", flex: 1 },
+    
     {
       field: "date",
       headerName: "Date",

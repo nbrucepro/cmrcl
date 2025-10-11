@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Box,
   Button,
@@ -234,7 +234,9 @@ const Products = () => {
       minWidth: 200,
       renderCell: (params) => (
         <Typography color="text.primary" noWrap>
-          {params?.row?.variants[0]?.purchasePrice || "—"}
+          {params?.row?.variants[0]?.purchasePrice != null 
+            ? "Rs " + params.row.variants[0].purchasePrice.toLocaleString()
+            : "—"}
         </Typography>
       ),
     },
@@ -245,10 +247,13 @@ const Products = () => {
       minWidth: 200,
       renderCell: (params) => (
         <Typography color="text.primary" noWrap>
-          {params?.row?.variants[0]?.sellingPrice || "—"}
+          {params?.row?.variants[0]?.sellingPrice != null
+            ? "Rs " + params.row.variants[0].sellingPrice.toLocaleString()
+            : "—"}
         </Typography>
       ),
     },
+    
     {
       field: "stockQuantity",
       headerName: "Stock",
@@ -303,6 +308,9 @@ const Products = () => {
       ),
     },
   ];
+  useEffect(() => {
+    refetch();
+  }, [])
 
   if (isLoading) return <Loader />;
   if (isError)
@@ -330,6 +338,8 @@ const Products = () => {
         </Button>
       </div>
     );
+
+
 
   return (
     <Box sx={{ mx: "auto", width: "100%", pb: 6 }}>
