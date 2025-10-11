@@ -14,11 +14,12 @@ import Loader from "../../../(components)/common/Loader";
 import { useAppSelector } from "../../redux";
 
 const CardSalesSummary = () => {
-  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const selectedMonth = useAppSelector((state) => state?.global?.selectedMonth);
   const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
-    { month: selectedMonth.month, year: selectedMonth.year },
+    { month: selectedMonth?.month, year: selectedMonth?.year },
     { refetchOnMountOrArgChange: true }
   );
+  console.log(selectedMonth)
   const salesData = data?.salesSummary || [];
 
   const totalValueSum =data?.totalSales || 0;

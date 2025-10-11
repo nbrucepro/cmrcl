@@ -7,9 +7,9 @@ import Loader from "../../../(components)/common/Loader";
 import { useAppSelector } from "../../redux";
 
 const CardPopularProducts = () => {
-  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const selectedMonth = useAppSelector((state) => state?.global?.selectedMonth);
   const { data : dashboardMetrics, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
-    { month: selectedMonth.month, year: selectedMonth.year },
+    { month: selectedMonth?.month, year: selectedMonth?.year },
     { refetchOnMountOrArgChange: true }
   );
   if (isError) return null;

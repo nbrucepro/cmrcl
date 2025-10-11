@@ -10,9 +10,9 @@ import { useAppSelector } from "../../redux";
 const colors = ["#00C49F", "#0088FE", "#FFBB28"];
 
 const CardExpenseSummary = () => {
-  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const selectedMonth = useAppSelector((state) => state?.global?.selectedMonth);
   const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
-    { month: selectedMonth.month, year: selectedMonth.year },
+    { month: selectedMonth?.month, year: selectedMonth?.year },
     { refetchOnMountOrArgChange: true }
   );
 

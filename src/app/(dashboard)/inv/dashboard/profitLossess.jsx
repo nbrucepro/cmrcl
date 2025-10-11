@@ -10,7 +10,7 @@ const ProfitLossess = () => {
   const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
   // const { data, isLoading, isError } = useGetDashboardMetricsQuery(selectedMonth);
   const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
-    { month: selectedMonth.month, year: selectedMonth.year },
+    { month: selectedMonth?.month, year: selectedMonth?.year },
     { refetchOnMountOrArgChange: true }
   );
   
