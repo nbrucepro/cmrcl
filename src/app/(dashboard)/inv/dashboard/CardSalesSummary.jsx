@@ -78,7 +78,7 @@ const CardSalesSummary = () => {
               <button
                 className="shadow-sm border border-gray-300 bg-white p-2 rounded"
               >
-                Daily
+                
               </button>
             </div>
             {/* CHART */}

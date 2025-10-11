@@ -4,7 +4,8 @@ import React, { useEffect, useState } from "react";
 import Loader from "../../../(components)/common/Loader";
 import { Card, Statistic } from "antd";
 import { ArrowDownwardOutlined, ArrowUpwardOutlined } from "@mui/icons-material";
-import { useAppSelector } from "../../redux";
+import { useAppDispatch, useAppSelector } from "../../redux";
+import { setSelectedMonth } from "@/state";
 
 const ProfitLossess = () => {
   const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
@@ -53,6 +54,15 @@ const ProfitLossess = () => {
     );
   }
   const netProfit = profitOnSales ;
+  const dispatch = useAppDispatch();
+
+useEffect(() => {
+  if (!selectedMonth?.month || !selectedMonth?.year) {
+    const now = dayjs();
+    dispatch(setSelectedMonth({ month: now.month() + 1, year: now.year() }));
+  }
+}, [selectedMonth, dispatch]);
+console.log(selectedMonth)
 
   return (
     <div className="row-span-3 mb-2 xl:row-span-2   rounded-2xl flex flex-col justify-between">
