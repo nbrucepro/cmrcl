@@ -19,7 +19,6 @@ const CardSalesSummary = () => {
     { month: selectedMonth?.month, year: selectedMonth?.year },
     { refetchOnMountOrArgChange: true }
   );
-  console.log(selectedMonth)
   const salesData = data?.salesSummary || [];
 
   const totalValueSum =data?.totalSales || 0;

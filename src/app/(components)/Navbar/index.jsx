@@ -50,14 +50,18 @@ const Navbar = () => {
     }
   }, []);
   
-useEffect(() => {
-  if (!selectedMonth?.month || !selectedMonth?.year) {
-    dispatch(setSelectedMonth({
-      month: dayjs().month() + 1,
-      year: dayjs().year(),
-    }));
-  }
-}, [dispatch, selectedMonth]);
+  useEffect(() => {
+    const currentMonth = dayjs().month() + 1;
+    const currentYear = dayjs().year();
+  
+    dispatch(
+      setSelectedMonth({
+        month: currentMonth,
+        year: currentYear,
+      })
+    );
+    setSelectedDate(dayjs());
+  }, [dispatch]);
 
     const handleMonthChange = (date) => {
     setSelectedDate(date);
