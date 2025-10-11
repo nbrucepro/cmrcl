@@ -53,8 +53,8 @@ const Navbar = () => {
     if (date) {
       dispatch(
         setSelectedMonth({
-          month: date.month() + 1, // month (1-12)
-          year: date.year(),
+          month: date?.month() + 1, // month (1-12)
+          year: date?.year(),
         })
       );
     }

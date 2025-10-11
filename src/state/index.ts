@@ -1,15 +1,26 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+interface SelectedMonth {
+  month: number;
+  year: number;
+}
 export interface InitialStateTypes {
   isSidebarCollapsed: boolean;
   isDarkMode: boolean;
-  selectedMonth: object;
+  selectedMonth: SelectedMonth;
 }
-
+// const initialState: InitialStateTypes = {
+//   isSidebarCollapsed: false,
+//   isDarkMode: false,
+//   selectedMonth: { month: new Date().getMonth() + 1, year: new Date().getFullYear() }, // ✅ new
+// };
 const initialState: InitialStateTypes = {
   isSidebarCollapsed: false,
   isDarkMode: false,
-  selectedMonth: { month: new Date().getMonth() + 1, year: new Date().getFullYear() }, // ✅ new
+  selectedMonth: {
+    month: new Date().getMonth() + 1, // ✅ Always valid
+    year: new Date().getFullYear(),
+  },
 };
 
 export const globalSlice = createSlice({
