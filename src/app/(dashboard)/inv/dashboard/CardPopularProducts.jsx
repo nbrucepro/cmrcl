@@ -6,8 +6,9 @@ import Image from "next/image";
 import Loader from "../../../(components)/common/Loader";
 
 const CardPopularProducts = () => {
-  const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
+  const {isError, data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
 
+  if (isError) return null;
   return (
     <div className="row-span-3 xl:row-span-6 bg-white shadow-md rounded-2xl pb-16 flex flex-col">
       {isLoading ? (
@@ -31,7 +32,7 @@ const CardPopularProducts = () => {
                     </div>
                     <div className="flex text-sm items-center">
                       <span className="font-bold text-blue-500 text-xs">
-                        $ {product?.variants[0]?.sellingPrice}
+                      Rs{" "} {product?.variants[0]?.sellingPrice}
                       </span>
                       {/* <span className="mx-2">|</span>
                       <Rating rating={product.rating || 0} /> */}

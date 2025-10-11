@@ -175,7 +175,7 @@ const Sidebar = () => {
             isSidebarCollapsed ? "hidden" : "block"
           } font-extrabold text-xl`}
         >
-          CMCL
+          Dreamdoor
         </h1>
 
         <button

@@ -103,17 +103,6 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
       if (variant.sellingPrice <= 0)
         newErrors[`variant_sellingPrice_${vIndex}`] =
           "Selling price must be greater than 0";
-
-      // variant.attributes.forEach((attr, aIndex) => {
-      //   const validNames = ["Width", "Length"];
-      //   if (!attr.name.trim())
-      //   newErrors[`attr_name_${vIndex}_${aIndex}`] = "Attribute name required";
-      //   else if (!validNames.includes(attr.name))
-      //   newErrors[`attr_name_${vIndex}_${aIndex}`] = "Attribute name must be 'Width' or 'Length'";
-
-      //   if (attr.value === "" || parseFloat(attr.value) <= 0)
-      //     newErrors[`attr_value_${vIndex}_${aIndex}`] = "Attribute value must be greater than 0";
-      //   });
       if (formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
         const requiredNames = ["Width", "Length"];
 
@@ -136,13 +125,6 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   // 🔹 Input handlers
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // setFormData({
-    //   ...formData,
-    //   [name]:
-    //     name === "price" || name === "stockQuantity" || name === "rating"
-    //       ? parseFloat(value)
-    //       : value,
-    // });
     setFormData({
       ...formData,
       [name]: ["price", "stockQuantity", "rating"].includes(name)
@@ -157,10 +139,20 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
         return newErrors;
       });
     }
-
     if (name === "categoryId") {
-      if (value === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
-        // Door → add Width & Length
+      if (value === "b52d030f-1309-4099-bc85-b3d040fb9806") {
+        // Lock → no dimensions
+        setVariants([
+          {
+            sku: "",
+            purchasePrice: 0,
+            sellingPrice: 0,
+            stockQuantity: 0,
+            attributes: [],
+          },
+        ]);
+      } else {
+        // All other categories → show dimensions
         setVariants([
           {
             sku: "",
@@ -173,19 +165,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
             ],
           },
         ]);
-      } else if (value === "b52d030f-1309-4099-bc85-b3d040fb9806") {
-        // Lock → no attributes
-        setVariants([
-          {
-            sku: "",
-            purchasePrice: 0,
-            sellingPrice: 0,
-            stockQuantity: 0,
-            attributes: [],
-          },
-        ]);
       }
     }
+    
   };
 
   const handleVariantChange = (index, e) => {
@@ -318,6 +300,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                   <option value="c25b2efb-ec58-4036-a38e-65e9c2c5bcfc">
                     Door
                   </option>
+                  <option value="4f6e9c17-2a92-4694-a689-ab2fdeb887c6">
+                    Mattress
+                  </option>
                 </TextField>
               </Grid>
               <Grid item xs={12} sm={3}>
@@ -352,7 +337,14 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                           {type}
                         </option>
                       ))
-                    : null}
+                    : formData.categoryId === "4f6e9c17-2a92-4694-a689-ab2fdeb887c6"
+                    ? ["Single Mattress", "Double Mattress", "Spring Mattress", "Other"].map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))
+                    : null
+                    }
                 </TextField>
                 {formData.name === "Other" && (
                   <Grid className="mt-4" item xs={12} sm={3}>

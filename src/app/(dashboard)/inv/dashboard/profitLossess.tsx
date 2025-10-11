@@ -11,6 +11,21 @@ const ProfitLossess = () => {
   const salesData = data?.salesSummary || [];
   const purchaseData = data?.purchaseSummary || [];
 
+  const products = data?.popularProducts || [];
+
+  const profitOnSales = products.reduce((total: number, product: any) => {
+    const variant = product.variants?.[0]; // assuming one variant per product
+    if (!variant || product.soldCount <= 0) return total;
+  
+    const purchasePrice = variant.purchasePrice || 0;
+    const sellingPrice = variant.sellingPrice || 0;
+    const soldCount = product.soldCount || 0;
+  
+    const profit = (sellingPrice - purchasePrice) * soldCount;
+    return total + profit;
+  }, 0);
+  
+  
   const totalValueSum =
     salesData.reduce((acc:any, curr:any) => acc + curr.totalValue, 0) || 0;
 
@@ -31,7 +46,7 @@ const ProfitLossess = () => {
     </div>
     );
   }
-  const netProfit = totalValueSum-totalPurchased ;
+  const netProfit = profitOnSales ;
 
   return (
     <div className="row-span-3 mb-2 xl:row-span-2   rounded-2xl flex flex-col justify-between">
@@ -45,7 +60,7 @@ const ProfitLossess = () => {
               title="Total Purchases"
               value={totalPurchased}
               precision={1}
-              prefix="$"
+              prefix="Rs"
             />
           </Card>
 
@@ -54,22 +69,21 @@ const ProfitLossess = () => {
               title="Total Sales"
               value={totalValueSum}
               precision={1}
-              prefix="$"
+              prefix="Rs"
             />
           </Card>
 
           <Card variant="outlined" className="shadow-sm">
             <Statistic
-              title="Net Profit"
+              title="Profit on sold items"
               value={netProfit}
               precision={2}
               valueStyle={{
                 color: netProfit >= 0 ? "#3f8600" : "#cf1322",
               }}
               prefix={
-                netProfit >= 0 ? <ArrowUpwardOutlined /> : <ArrowDownwardOutlined />
+                netProfit >= 0 ? <span> <ArrowUpwardOutlined />Rs </span>:<span><ArrowDownwardOutlined />Rs</span>
               }
-              suffix="$"
             />
           </Card>
         </div>

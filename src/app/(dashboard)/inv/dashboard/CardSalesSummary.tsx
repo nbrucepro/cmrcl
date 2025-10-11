@@ -79,7 +79,7 @@ const CardSalesSummary = () => {
               <div className="text-lg font-medium">
                 <p className="text-xs text-gray-400">Value</p>
                 <span className="text-2xl font-extrabold">
-                $
+                Rs{" "}
   {(totalValueSum / 1000).toLocaleString("en", {
     maximumFractionDigits: 2,
   })}
@@ -115,7 +115,7 @@ const CardSalesSummary = () => {
                 />
                 <YAxis
                   tickFormatter={(value) => {
-                    return `$ ${(value / 1000).toFixed(0)}k`;
+                    return `Rs ${(value / 1000).toFixed(0)}k`;
                   }}
                   tick={{ fontSize: 12, dx: -1 }}
                   tickLine={false}

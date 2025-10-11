@@ -205,7 +205,7 @@ export default function InventoryBase({
           py: 1,
         }}
       >
-        Reset
+        Reset Filters
       </Button>
     </Tooltip>
   </div>
