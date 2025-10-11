@@ -71,7 +71,7 @@ export const api = createApi({
   reducerPath: "api",
   tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses"],
   endpoints: (build) => ({
-    getDashboardMetrics: build.query<DashboardMetrics, {month:Number;year:Number}>({
+    getDashboardMetrics: build.query<DashboardMetrics, {month:number;year:number}>({
       // query: () => "/dashboard",
       query: ({ month, year }) => ({
         url: `/dashboard/?month=${month}&year=${year}`,
