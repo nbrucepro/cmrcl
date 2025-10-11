@@ -10,9 +10,9 @@ import { setSelectedMonth } from "@/state";
 const ProfitLossess = () => {
   const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
   // const { data, isLoading, isError } = useGetDashboardMetricsQuery(selectedMonth);
-  const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
+  const { data, isLoading, isFetching, isError,refetch } = useGetDashboardMetricsQuery(
     { month: selectedMonth?.month, year: selectedMonth?.year },
-    { refetchOnMountOrArgChange: true }
+    { refetchOnMountOrArgChange: true,skip: !selectedMonth }
   );
   
   const salesData = data?.salesSummary || [];
@@ -62,7 +62,11 @@ useEffect(() => {
     dispatch(setSelectedMonth({ month: now.month() + 1, year: now.year() }));
   }
 }, [selectedMonth, dispatch]);
-console.log(selectedMonth)
+useEffect(() => {
+  if (selectedMonth?.month && selectedMonth?.year) {
+    refetch();
+  }
+}, [selectedMonth, refetch]);
 
   return (
     <div className="row-span-3 mb-2 xl:row-span-2   rounded-2xl flex flex-col justify-between">
