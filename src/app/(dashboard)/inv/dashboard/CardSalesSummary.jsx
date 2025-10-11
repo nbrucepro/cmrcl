@@ -11,19 +11,21 @@ import {
   YAxis,
 } from "recharts";
 import Loader from "../../../(components)/common/Loader";
+import { useAppSelector } from "../../redux";
 
 const CardSalesSummary = () => {
-  const { data, isLoading, isError } = useGetDashboardMetricsQuery();
+  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
+    { month: selectedMonth.month, year: selectedMonth.year },
+    { refetchOnMountOrArgChange: true }
+  );
   const salesData = data?.salesSummary || [];
 
-  const [timeframe, setTimeframe] = useState("daily");
-
-  const totalValueSum =
-    salesData.reduce((acc, curr) => acc + curr.totalValue, 0) || 0;
+  const totalValueSum =data?.totalSales || 0;
 
   const averageChangePercentage =
     salesData.reduce((acc, curr, _, array) => {
-      return acc + curr.changePercentage! / array.length;
+      return acc + curr?.changePercentage / array.length;
     }, 0) || 0;
 
   const highestValueData = salesData.reduce((acc, curr) => {
@@ -39,28 +41,10 @@ const CardSalesSummary = () => {
   : "N/A";
 
 
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-      {/* <img
-        src="/images/error-state.svg"
-        alt="Error illustration"
-        className="w-48 mb-4 opacity-80"
-      /> */}
-      <h2 className="text-lg font-semibold text-red-600 mb-2">
-        Oops! Couldn’t load data
-      </h2>
-      <p className="text-gray-500 mb-4 max-w-md">
-        Something went wrong while fetching logs data. Please check your
-        internet connection or try again.
-      </p>
-    </div>
-    );
-  }
-
+  if (isError) return null;
   return (
     <div className="row-span-3 xl:row-span-6 bg-white shadow-md rounded-2xl flex flex-col justify-between">
-      {isLoading ? (
+      {(isFetching || isLoading) ? (
         <div className="m-5"> <Loader /></div>
       ) : (
         <>
@@ -122,7 +106,7 @@ const CardSalesSummary = () => {
                   axisLine={false}
                 />
                 <Tooltip
-  formatter={(value: number) => [`$ ${value.toLocaleString("en")}`]}
+  formatter={(value) => [`$ ${value.toLocaleString("en")}`]}
   labelFormatter={(label) => {
     const date = new Date(label);
     return `${date.getDate()}/${date.getMonth() + 1}/${String(

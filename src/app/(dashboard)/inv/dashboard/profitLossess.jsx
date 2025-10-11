@@ -1,20 +1,26 @@
 import { useGetDashboardMetricsQuery } from "@/state/api";
 import { TrendingUp } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Loader from "../../../(components)/common/Loader";
 import { Card, Statistic } from "antd";
 import { ArrowDownwardOutlined, ArrowUpwardOutlined } from "@mui/icons-material";
+import { useAppSelector } from "../../redux";
 
 const ProfitLossess = () => {
-  const { data, isLoading, isError } = useGetDashboardMetricsQuery();
-
+  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  // const { data, isLoading, isError } = useGetDashboardMetricsQuery(selectedMonth);
+  const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
+    { month: selectedMonth.month, year: selectedMonth.year },
+    { refetchOnMountOrArgChange: true }
+  );
+  
   const salesData = data?.salesSummary || [];
   const purchaseData = data?.purchaseSummary || [];
 
-  const products = data?.popularProducts || [];
+  const products = data?.productsWithProfit || [];
 
-  const profitOnSales = products.reduce((total: number, product: any) => {
-    const variant = product.variants?.[0]; // assuming one variant per product
+  const profitOnSales = products.reduce((total, product) => {
+    const variant = product.variants?.[0]; 
     if (!variant || product.soldCount <= 0) return total;
   
     const purchasePrice = variant.purchasePrice || 0;
@@ -27,10 +33,10 @@ const ProfitLossess = () => {
   
   
   const totalValueSum =
-    salesData.reduce((acc:any, curr:any) => acc + curr.totalValue, 0) || 0;
+    salesData.reduce((acc, curr) => acc + curr.totalValue, 0) || 0;
 
   const totalPurchased =
-    purchaseData.reduce((acc:any, curr:any) => acc + curr.totalPurchased, 0) || 0;
+    purchaseData.reduce((acc, curr) => acc + curr.totalPurchased, 0) || 0;
 
   if (isError) {
     return (
@@ -50,7 +56,7 @@ const ProfitLossess = () => {
 
   return (
     <div className="row-span-3 mb-2 xl:row-span-2   rounded-2xl flex flex-col justify-between">
-      {isLoading ? (
+      {(isLoading || isFetching) ? (
         <div className="m-5"> <Loader /></div>
       ) : (
         <>

@@ -13,18 +13,22 @@ import {
   YAxis,
 } from "recharts";
 import Loader from "../../../(components)/common/Loader";
+import { useAppSelector } from "../../redux";
 
 const CardPurchaseSummary = () => {
-  const { data, isLoading, isError } = useGetDashboardMetricsQuery();
+  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
+    { month: selectedMonth.month, year: selectedMonth.year },
+    { refetchOnMountOrArgChange: true }
+  );
   const purchaseData = data?.purchaseSummary || [];
-  const [timeframe, setTimeframe] = useState("daily");
 
   // Calculate totals and insights
   const totalPurchased =
     purchaseData.reduce((acc, curr) => acc + curr.totalPurchased, 0) || 0;
 
   const avgChangePercentage =
-    purchaseData.reduce((acc, curr, _, arr) => acc + curr.changePercentage! / arr.length, 0) || 0;
+    purchaseData.reduce((acc, curr, _, arr) => acc + curr?.changePercentage / arr.length, 0) || 0;
 
   const highestPurchaseData = purchaseData.reduce((acc, curr) => {
     return acc.totalPurchased > curr.totalPurchased ? acc : curr;
@@ -39,26 +43,10 @@ const CardPurchaseSummary = () => {
   : "N/A";
 
 
-  if (isError) return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-    {/* <img
-      src="/images/error-state.svg"
-      alt="Error illustration"
-      className="w-48 mb-4 opacity-80"
-    /> */}
-    <h2 className="text-lg font-semibold text-red-600 mb-2">
-      Oops! Couldn’t load data
-    </h2>
-    <p className="text-gray-500 mb-4 max-w-md">
-      Something went wrong while fetching logs data. Please check your
-      internet connection or try again.
-    </p>
-  </div>
-    )
-
+  if (isError) return null;
   return (
     <div className="row-span-3 xl:row-span-6 bg-white shadow-md rounded-2xl flex flex-col justify-between">
-      {isLoading ? (
+      {(isFetching || isLoading) ? (
         <div className="m-5">
           <Loader />
         </div>
@@ -101,7 +89,7 @@ const CardPurchaseSummary = () => {
               <button
                 className="shadow-sm border border-gray-300 bg-white p-2 rounded"
               >
-                Daily
+                {/* {selectedMonth?.yearmonth?.toLocaleDateString()} */}
               </button>
             </div>
 
@@ -131,7 +119,7 @@ const CardPurchaseSummary = () => {
               />
 
 <Tooltip
-  formatter={(value: number) => [`$ ${value.toLocaleString("en")}`]}
+  formatter={(value) => [`$ ${value.toLocaleString("en")}`]}
   labelFormatter={(label) => {
     const date = new Date(label);
     return `${date.getDate()}/${date.getMonth() + 1}/${String(

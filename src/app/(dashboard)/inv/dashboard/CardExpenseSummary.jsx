@@ -5,15 +5,16 @@ import {
 import { TrendingUp } from "lucide-react";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
 import Loader from "../../../(components)/common/Loader";
-
-type ExpenseSums = {
-  [category: string]: number;
-};
+import { useAppSelector } from "../../redux";
 
 const colors = ["#00C49F", "#0088FE", "#FFBB28"];
 
 const CardExpenseSummary = () => {
-  const { data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
+  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const { data, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
+    { month: selectedMonth.month, year: selectedMonth.year },
+    { refetchOnMountOrArgChange: true }
+  );
 
   const expenseSummary = dashboardMetrics?.expenseSummary[0];
 
@@ -21,7 +22,7 @@ const CardExpenseSummary = () => {
     dashboardMetrics?.expenseByCategorySummary || [];
 
   const expenseSums = expenseByCategorySummary.reduce(
-    (acc: ExpenseSums, item: ExpenseByCategorySummary) => {
+    (acc, item) => {
       const category = item.category + " Expenses";
       const amount = parseInt(item.amount, 10);
       if (!acc[category]) acc[category] = 0;
@@ -39,14 +40,13 @@ const CardExpenseSummary = () => {
   );
 
   const totalExpenses = expenseCategories.reduce(
-    (acc, category: { value: number }) => acc + category.value,
+    (acc, category) => acc + category.value,
     0
   );
   const formattedTotalExpenses = totalExpenses.toFixed(2);
-
   return (
     <div className="row-span-3 bg-white shadow-md rounded-2xl flex flex-col justify-between">
-      {isLoading ? (
+      {(isLoading && isFetching) ? (
         <div className="m-5"> <Loader /></div>
       ) : (
         <>

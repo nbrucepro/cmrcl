@@ -45,8 +45,7 @@ const SidebarLink = ({
   setActiveParent
 }: SidebarLinkProps) => {
   const pathname = usePathname();
-  console.log(pathname)
-  console.log(href)
+  
   const isActive =
     href && (pathname === href || (pathname === "/" && href === "/inv/dashboard"));
 
@@ -133,11 +132,10 @@ const SidebarLink = ({
 };
 
 const Sidebar = () => {
-  const dispatch = useAppDispatch();
+  const dispatch:any = useAppDispatch();
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
   );
-  const [activeParent, setActiveParent] = React.useState<string | null>(null);
 
   const toggleSidebar = () => {
     dispatch(setIsSidebarCollapsed(!isSidebarCollapsed));
@@ -290,10 +288,10 @@ const Sidebar = () => {
 
       {/* FOOTER */}
       {/* LOGOUT BUTTON */}
-<div className={` mb-5 `}>
+<div className={` mb-5 border-t border-gray-200 `}>
   <button
     onClick={handleLogout}
-    className="flex items-center gap-3 w-full text-red-600 hover:bg-gray-100 px-4 py-2 rounded-md transition"
+    className={`${isSidebarCollapsed ? "px-4" : "px-6"}"flex cursor-pointer items-start gap-3 w-full text-red-600 hover:bg-gray-100  py-2 rounded-md transition"`}
   >
     <Logout className="w-5 h-5" />
     <span className={`${isSidebarCollapsed ? "hidden" : "block"} text-sm font-medium`}>Logout</span>

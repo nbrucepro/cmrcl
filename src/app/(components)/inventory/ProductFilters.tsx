@@ -117,7 +117,7 @@ const ProductFilters = ({
         fullWidth
         onClick={onReset}
       >
-        Reset
+        Reset Filters
       </Button>
     </Tooltip>
   </Stack>

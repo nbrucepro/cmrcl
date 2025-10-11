@@ -1,27 +1,32 @@
 "use client";
 
 import { useAppDispatch, useAppSelector } from "@/app/(dashboard)/redux";
-import { setIsDarkMode, setIsSidebarCollapsed } from "@/state";
+import { setIsDarkMode, setIsSidebarCollapsed, setSelectedMonth } from "@/state";
 import { Bell, Menu, Moon, Settings, Sun, LogOut } from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { DatePicker } from "antd";
+import dayjs from "dayjs";
+import { usePathname, useRouter } from "next/navigation";
 import React, { useEffect, useRef, useState } from "react";
 
 const Navbar = () => {
   const dispatch = useAppDispatch();
-  const router = useRouter();
+  
+  const pathname = usePathname();
+  
+  const isDashboard = pathname === "/inv/dashboard";
 
   const isSidebarCollapsed = useAppSelector(
     (state) => state.global.isSidebarCollapsed
   );
-  const isDarkMode = useAppSelector((state) => state.global.isDarkMode);
 
   const [user, setUser] = useState({ name: "Admin" }); // default fallback
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef: any = useRef(null);
+  const dropdownRef = useRef(null);
+  
+  const [selectedDate, setSelectedDate] = useState(dayjs());
+
   useEffect(() => {
-    const handleClickOutside = (event: any) => {
+    const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
@@ -43,12 +48,16 @@ const Navbar = () => {
     }
   }, []);
 
-  // Handle Logout
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("adminName");
-    document.cookie = "adminToken=; path=/; max-age=0;"; // clear cookie
-    router.push("/adminlogin");
+    const handleMonthChange = (date) => {
+    setSelectedDate(date);
+    if (date) {
+      dispatch(
+        setSelectedMonth({
+          month: date.month() + 1, // month (1-12)
+          year: date.year(),
+        })
+      );
+    }
   };
 
   return (
@@ -82,26 +91,17 @@ const Navbar = () => {
               3
             </span>
           </div> */}
-
-          {/* <hr className="w-0 h-7 border border-solid border-l border-gray-300 mx-3" /> */}
-
-          {/* USER INFO */}
-          <div className="relative items-center gap-3 cursor-pointer" ref={dropdownRef}>
-            <button
-              className="flex items-center gap-3 focus:outline-none cursor-pointer"
-            >
-              <Image
-                src="https://uxwing.com/wp-content/themes/uxwing/download/peoples-avatars/avatar-icon.svg"
-                alt="Profile"
-                width={45}
-                height={45}
-                className="rounded-full h-full object-cover"
-                unoptimized
-              />
-              <span className="font-semibold">{user.name}</span>
-            </button>
-          </div>
         </div>
+        {isDashboard && (
+          <DatePicker
+          picker="month"
+          value={selectedDate}
+          onChange={handleMonthChange}
+          format="MMMM YYYY"
+          allowClear={false}
+          className="border rounded-md shadow-sm hover:shadow-md transition-all duration-150"
+          />
+        )}
       </div>
     </div>
   );

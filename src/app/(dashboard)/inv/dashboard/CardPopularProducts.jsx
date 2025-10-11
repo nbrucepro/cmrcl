@@ -4,14 +4,18 @@ import React from "react";
 import Rating from "../../../(components)/Rating";
 import Image from "next/image";
 import Loader from "../../../(components)/common/Loader";
+import { useAppSelector } from "../../redux";
 
 const CardPopularProducts = () => {
-  const {isError, data: dashboardMetrics, isLoading } = useGetDashboardMetricsQuery();
-
+  const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
+  const { data : dashboardMetrics, isLoading, isFetching, isError } = useGetDashboardMetricsQuery(
+    { month: selectedMonth.month, year: selectedMonth.year },
+    { refetchOnMountOrArgChange: true }
+  );
   if (isError) return null;
   return (
     <div className="row-span-3 xl:row-span-6 bg-white shadow-md rounded-2xl pb-16 flex flex-col">
-      {isLoading ? (
+      {(isFetching || isLoading) ? (
         <div className="m-5"> <Loader /></div>
       ) : (
         <>

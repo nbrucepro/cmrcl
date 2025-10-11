@@ -71,8 +71,12 @@ export const api = createApi({
   reducerPath: "api",
   tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses"],
   endpoints: (build) => ({
-    getDashboardMetrics: build.query<DashboardMetrics, void>({
-      query: () => "/dashboard",
+    getDashboardMetrics: build.query<DashboardMetrics, {month:Number;year:Number}>({
+      // query: () => "/dashboard",
+      query: ({ month, year }) => ({
+        url: `/dashboard/?month=${month}&year=${year}`,
+        method: "GET",
+      }),
       providesTags: ["DashboardMetrics"],
     }),
     getProducts: build.query<Product[], string | void>({
@@ -115,7 +119,6 @@ export const api = createApi({
     }),
   }),
 });
-console.log("process.env.NEXT_PUBLIC_API_BASE_URL",process.env.NEXT_PUBLIC_API_BASE_URL)
 export const {
   useGetDashboardMetricsQuery,
   useGetProductsQuery,
