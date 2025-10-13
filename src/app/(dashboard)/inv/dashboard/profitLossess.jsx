@@ -7,6 +7,8 @@ import { ArrowDownwardOutlined, ArrowUpwardOutlined } from "@mui/icons-material"
 import { useAppDispatch, useAppSelector } from "../../redux";
 import { setSelectedMonth } from "@/state";
 
+import dayjs from "dayjs";
+
 const ProfitLossess = () => {
   const selectedMonth = useAppSelector((state) => state.global.selectedMonth);
   // const { data, isLoading, isError } = useGetDashboardMetricsQuery(selectedMonth);
@@ -39,20 +41,7 @@ const ProfitLossess = () => {
   const totalPurchased =
     purchaseData.reduce((acc, curr) => acc + curr.totalPurchased, 0) || 0;
 
-  if (isError) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
 
-      <h2 className="text-lg font-semibold text-red-600 mb-2">
-        Oops! Couldn’t load data
-      </h2>
-      <p className="text-gray-500 mb-4 max-w-md">
-        Something went wrong while fetching logs data. Please check your
-        internet connection or try again.
-      </p>
-    </div>
-    );
-  }
   const netProfit = profitOnSales ;
   const dispatch = useAppDispatch();
 
@@ -67,6 +56,21 @@ useEffect(() => {
     refetch();
   }
 }, [selectedMonth, refetch]);
+
+if (isError) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+
+    <h2 className="text-lg font-semibold text-red-600 mb-2">
+      Oops! Couldn’t load data
+    </h2>
+    <p className="text-gray-500 mb-4 max-w-md">
+      Something went wrong while fetching logs data. Please check your
+      internet connection or try again.
+    </p>
+  </div>
+  );
+}
 
   return (
     <div className="row-span-3 mb-2 xl:row-span-2   rounded-2xl flex flex-col justify-between">

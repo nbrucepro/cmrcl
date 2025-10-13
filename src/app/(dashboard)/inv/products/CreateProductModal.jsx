@@ -11,10 +11,12 @@ import {
   Typography,
   Divider,
   Box,
+  Paper,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Add, Delete } from "@mui/icons-material";
 import { v4 } from "uuid";
+import { designOptions, mattressOptions, mattressHeights, categoryAttributes, categoryIdMap } from "../../../../lib/DoorConfig"
 
 const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   // inside the component
@@ -82,12 +84,12 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     if (!formData.categoryId || formData.categoryId === "Select Category") {
       newErrors.categoryId = "Category is required";
     }
-    if (!formData.name.trim() || formData.name === "Select Type") {
-      newErrors.name = "Type is required";
+    if (!formData.name.trim() || formData.name === "Select Design") {
+      newErrors.name = "Design is required";
     }
     if (formData.name === "Other") {
       if (!otherType.trim()) {
-        newErrors.otherType = "Please specify the type";
+        newErrors.otherType = "Please specify the Design";
       }
     }
 
@@ -103,19 +105,28 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
       if (variant.sellingPrice <= 0)
         newErrors[`variant_sellingPrice_${vIndex}`] =
           "Selling price must be greater than 0";
-      if (formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
-        const requiredNames = ["Width", "Length"];
+      // if (formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
+      //   const requiredNames = ["Width", "Length"];
 
-        requiredNames.forEach((reqName) => {
-          const attr = variant.attributes.find((a) => a.name === reqName);
-          if (!attr)
-            newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
-          else if (attr.value === "" || parseFloat(attr.value) <= 0)
-            newErrors[
-              `attr_${reqName}_${vIndex}`
-            ] = `${reqName} must be greater than 0`;
-        });
-      }
+      //   requiredNames.forEach((reqName) => {
+      //     const attr = variant.attributes.find((a) => a.name === reqName);
+      //     if (!attr)
+      //       newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
+      //     else if (attr.value === "" || parseFloat(attr.value) <= 0)
+      //       newErrors[
+      //         `attr_${reqName}_${vIndex}`
+      //       ] = `${reqName} must be greater than 0`;
+      //   });
+      // }
+      const requiredAttrs = categoryAttributes[formData.categoryId]?.map(a => a.name) || [];
+requiredAttrs.forEach((reqName) => {
+  const attr = variant.attributes.find((a) => a.name === reqName);
+  if (!attr)
+    newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
+  else if (attr.value === "" || (parseFloat(attr.value) <= 0 && !isNaN(attr.value)))
+    newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} must be filled correctly`;
+});
+
     });
 
     setErrors(newErrors);
@@ -169,6 +180,73 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     }
     
   };
+  const handleDesignChange = (e) => {
+    const { value } = e.target;
+    handleChange(e); // keep formData updated
+  
+    if (!formData.categoryId) return;
+  
+    // ✅ for Malaysian / Melamine / ZRK doors
+    if (["malaysian", "melamine", "zrk"].includes(formData.categoryId)) {
+      const sizeOptions = designOptions[formData.categoryId][value] || [];
+  
+      const extraAttrs = categoryAttributes[formData.categoryId] || [];
+  
+      // Create a single variant with selectable size
+      setVariants([
+        {
+          sku: ``, // initially design only
+          purchasePrice: 0,
+          sellingPrice: 0,
+          stockQuantity: 0,
+          attributes: [
+            { name: "Design", value },
+            { name: "Size", value: "" }, // user will select this
+            ...extraAttrs
+              .filter((a) => !["Design", "Size"].includes(a.name))
+              .map((a) => ({ name: a.name, value: a.defaultValue || "" })),
+          ],
+          sizeOptions, // store possible sizes for this design
+        },
+      ]);
+    }
+  
+    // ✅ Mattress case
+    else if (formData.categoryId === "mattress") {
+      const extraAttrs = categoryAttributes["mattress"] || [];
+      setVariants([
+        {
+          sku: ``,
+          purchasePrice: 0,
+          sellingPrice: 0,
+          stockQuantity: 0,
+          attributes: [
+            { name: "Type", value },
+            { name: "Height", value: mattressHeights[0] || "" },
+            ...extraAttrs.map((a) => ({ name: a.name, value: a.defaultValue || "" })),
+          ],
+        },
+      ]);
+    }
+  
+    // ✅ Lock / Others
+    else {
+      const extraAttrs = categoryAttributes[formData.categoryId] || [];
+      setVariants([
+        {
+          sku: '',
+          purchasePrice: 0,
+          sellingPrice: 0,
+          stockQuantity: 0,
+          attributes: extraAttrs.map((a) => ({
+            name: a.name,
+            value: a.defaultValue || "",
+          })),
+        },
+      ]);
+    }
+  };
+  
 
   const handleVariantChange = (index, e) => {
     const { name, value } = e.target;
@@ -243,11 +321,13 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     if (!validateForm()) return;
     const finalFormData = {
       ...formData,
+      categoryId: categoryIdMap[formData.categoryId] || formData.categoryId,
       name: formData.name === "Other" ? otherType : formData.name,
     };
 
     setLoading(true);
     try {
+      // console.log({...finalFormData, variants})
       await onCreate({ ...finalFormData, variants });
       onClose();
     } finally {
@@ -265,20 +345,36 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
       onClose={handleClose}
       fullWidth
       maxWidth="md"
-      sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 1 } }}
+      sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 0,bgcolor: "#fff" } }}
     >
-      <DialogTitle variant="h6" textAlign="center" sx={{ fontWeight: 600 }}>
+      <DialogTitle variant="h6" textAlign="center" sx={{ fontWeight: 600,textAlign: "center",  fontWeight: 700,fontSize: "1.25rem",py: 2.5,color: "#111827",bgcolor: "#ffffff", borderBottom: "1px solid #e5e7eb", }}>
         Create New Product
       </DialogTitle>
 
       <Divider />
 
-      <DialogContent sx={{ p: 3 }}>
-        <Box  component="form" onSubmit={handleSubmit} sx={{ mt: 2 }}>
-          <Box  display="flex" flexDirection="column" gap={2}>
-            <Grid container spacing={4}>
+      <DialogContent sx={{ p: 1 }}>
+        <Box  component="form" onSubmit={handleSubmit} >
+        <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        mb: 3,
+        borderRadius: 2,
+        border: "1px solid #e5e7eb",
+        bgcolor: "#ffffff",
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ fontWeight: 600, mb: 2, color: "#374151" }}
+      >
+        Product Information
+      </Typography>
+      <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2 }}>
+          <Grid container spacing={{ xs: 3, sm: 3, md: 4 }}>
               {/* PRODUCT DETAILS */}
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={6} md={6}>
                 <TextField
                   select
                   fullWidth
@@ -294,73 +390,83 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                   <option key="" value="Select Category">
                     Select Category
                   </option>
-                  <option value="b52d030f-1309-4099-bc85-b3d040fb9806">
-                    Lock
-                  </option>
-                  <option value="c25b2efb-ec58-4036-a38e-65e9c2c5bcfc">
-                    Door
-                  </option>
-                  <option value="4f6e9c17-2a92-4694-a689-ab2fdeb887c6">
+
+ <option value="malaysian">Malaysian Door</option>
+ <option value="melamine">Melamine Door</option>
+ <option value="zrk">ZRK Door</option>
+ <option value="4f6e9c17-2a92-4694-a689-ab2fdeb887c6">
                     Mattress
+  </option>
+ <option value="b52d030f-1309-4099-bc85-b3d040fb9806">
+                    Lock
                   </option>
                 </TextField>
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={6} md={3} >
                 <TextField
                   select
                   fullWidth
-                  label={`Type`}
+                  label={`Select Design`}
                   name="name"
                   value={formData.name}
                   error={!!errors.name}
                   helperText={errors.name}
                   onChange={(e) => {
-                    handleChange(e); // existing
+                    // handleChange(e); // existing
+                    handleDesignChange(e); 
                     if (e.target.value !== "Other") setOtherType(""); // reset if not other
                   }}
                   SelectProps={{ native: true }}
                 >
-                  <option key="Select Type" value="Select Type">
-                    Select Type
+                  <option key="Select Type" value="Select Design">
+                    Select Design 
                   </option>
                   {formData.categoryId ===
                   "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc"
-                    ? [...doorTypes, "Other"].map((type) => (
+                    ? [...doorTypes].map((type) => (
                         <option key={type} value={type}>
                           {type}
                         </option>
                       ))
                     : formData.categoryId ===
                       "b52d030f-1309-4099-bc85-b3d040fb9806"
-                    ? [...lockTypes, "Other"].map((type) => (
+                    ? [...lockTypes].map((type) => (
                         <option key={type} value={type}>
                           {type}
                         </option>
                       ))
                     : formData.categoryId === "4f6e9c17-2a92-4694-a689-ab2fdeb887c6"
-                    ? ["Single Mattress", "Double Mattress", "Spring Mattress", "Other"].map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))
-                    : null
+                    ? [...mattressOptions].map((type) => (
+                      <option key={type} value={type}>
+                        {type}
+                      </option>
+                    ))
+                    : ["malaysian", "melamine", "zrk"].includes(formData.categoryId)
+                    ? [...Object.keys(designOptions[formData.categoryId])].map(
+                        (type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        )
+                      )
+                    :null
                     }
                 </TextField>
                 {formData.name === "Other" && (
-                  <Grid className="mt-4" item xs={12} sm={3}>
+                  <Box mt={2}>
                     <TextField
                       fullWidth
-                      label="Specify Type"
+                      label="Specify Design Name"
                       value={otherType}
                       onChange={(e) => setOtherType(e.target.value)}
                       error={!!errors.otherType}
                       helperText={errors.otherType}
                       required
                     />
-                  </Grid>
+                  </Box>
                 )}
               </Grid>
-              <Grid item xs={12} sm={3}>
+              <Grid item xs={12} sm={6} md={3} >
                 <TextField
                   fullWidth
                   label="Product Description"
@@ -373,7 +479,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid className="hidden" item xs={12} sm={6}>
                 <TextField
                   fullWidth
                   label="Rating"
@@ -386,24 +492,38 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
               </Grid>
             </Grid>
           </Box>
-          {/* VARIANTS SECTION */}
-          <Typography variant="h6" sx={{ mt: 4, fontWeight: 600 }}>
-            Variants
-          </Typography>
+          </Paper>
+
+          {/* Details SECTION */}
+          <Paper
+      elevation={0}
+      sx={{
+        p: 3,
+        borderRadius: 2,
+        border: "1px solid #e5e7eb",
+        bgcolor: "#ffffff",
+         "& .MuiTextField-root": { width: "100%" },
+      }}
+    >
+      <Typography
+        variant="h6"
+        sx={{ fontWeight: 600, mb: 2, color: "#374151" }}
+      >
+        Design Details
+      </Typography>
 
           {variants.map((variant, vIndex) => (
             <Box
               key={vIndex}
               sx={{
                 mt: 2,
-                p: 2,
+                p: 0,
                 borderRadius: 2,
-                border: "1px solid #e0e0e0",
-                backgroundColor: "#fafafa",
+                backgroundColor: "#fff",
               }}
             >
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={3}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} sm={6} md={3} >
                   <TextField
                     fullWidth
                     label="SKU"
@@ -414,7 +534,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     onChange={(e) => handleVariantChange(vIndex, e)}
                   />
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={6} md={3} >
                   <TextField
                     fullWidth
                     label="Purchase Price"
@@ -426,7 +546,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     onChange={(e) => handleVariantChange(vIndex, e)}
                   />
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={6} md={3} >
                   <TextField
                     fullWidth
                     label="Selling Price"
@@ -438,7 +558,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     onChange={(e) => handleVariantChange(vIndex, e)}
                   />
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={6} md={3} >
                   <TextField
                     fullWidth
                     label="Stock Quantity"
@@ -453,58 +573,47 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
               </Grid>
 
               {/* ATTRIBUTES */}
-              {formData.categoryId &&
-                formData.categoryId ==
-                  "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc" && (
-                  <Typography
-                    variant="subtitle2"
-                    sx={{ mt: 4, fontWeight: 500 }}
-                  >
-                    Attributes (Door Dimensions)
-                  </Typography>
-                )}
-
+              {formData.categoryId && (
+  <Typography variant="h6"  sx={{ fontWeight: 600, my: 2, color: "#374151" }}>
+    {`Attributes `}
+  </Typography>
+)}
+<Grid container spacing={2} sx={{ mt: 2 }}>
               {variant.attributes.map((attr, aIndex) => (
-                <Grid
-                  container
-                  spacing={4}
-                  key={aIndex}
-                  alignItems="center"
-                  sx={{ mt: 3 }}
-                >
-                  <Grid item xs={5}>
-                    <TextField
-                      fullWidth
-                      label="Attribute Name"
-                      name="name"
-                      value={attr.name}
-                      error={!!errors[`attr_name_${vIndex}_${aIndex}`]}
-                      helperText={errors[`attr_name_${vIndex}_${aIndex}`]}
-                      onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
-                      InputProps={{ readOnly: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={5}>
-                    <TextField
-                      fullWidth
-                      label={`${attr.name} Value`}
-                      name="value"
-                      value={attr.value}
-                      error={!!errors[`attr_${attr.name}_${vIndex}`]}
-                      helperText={errors[`attr_${attr.name}_${vIndex}`]}
-                      onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
-                    />
-                  </Grid>
-                  {/* <Grid item xs={2}>
-                    <IconButton
-                      color="error"
-                      onClick={() => removeAttribute(vIndex, aIndex)}
-                    >
-                      <Delete />
-                    </IconButton>
-                  </Grid> */}
-                </Grid>
+               <Grid key={aIndex} item xs={12} sm={6} md={3} >
+               {attr.name === "Size" && variants[vIndex].sizeOptions ? (
+                 <TextField
+                   select
+                   fullWidth
+                   label="Select Size(inch)"
+                   name="value"
+                   value={attr.value}
+                   onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
+                   SelectProps={{ native: true }}
+                 >
+                   <option value="">Select Size</option>
+                   {variants[vIndex].sizeOptions.map((size) => (
+                     <option key={size} value={size}>
+                       {size}
+                     </option>
+                   ))}
+                 </TextField>
+               ) : (
+                 <TextField
+                   fullWidth
+                   label={`${attr.name} Value`}
+                   name="value"
+                   value={attr.value}
+                   error={!!errors[`attr_${attr.name}_${vIndex}`]}
+                   helperText={errors[`attr_${attr.name}_${vIndex}`]}
+                   onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
+                   disabled
+                 />
+               )}
+             </Grid>
+             
               ))}
+              </Grid>
 
               {/* <Button
                 startIcon={<Add />}
@@ -515,7 +624,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
               </Button> */}
 
               <Divider sx={{ my: 2 }} />
-              {variants?.length > 1 && (
+              {/* {variants?.length > 1 && (
                 <Button
                   variant="outlined"
                   color="error"
@@ -524,7 +633,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                 >
                   Remove Variant
                 </Button>
-              )}
+              )} */}
             </Box>
           ))}
 
@@ -537,11 +646,24 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
           >
             Add Variant
           </Button> */}
+          </Paper>
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ p: 2 }}>
-        <Button onClick={handleClose} color="inherit" variant="outlined">
+      <DialogActions   sx={{
+    p: 2.5,
+    bgcolor: "#ffffff",
+    borderTop: "1px solid #e5e7eb",
+    justifyContent: "space-between",
+  }} >
+        <Button onClick={handleClose}     sx={{
+      textTransform: "none",
+      borderRadius: 2,
+      px: 3,
+      color: "#374151",
+      borderColor: "#d1d5db",
+      "&:hover": { borderColor: "#9ca3af", bgcolor: "#f9fafb" },
+    }} variant="outlined">
           Cancel
         </Button>
         <Button
@@ -550,6 +672,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
           color="primary"
           onClick={handleSubmit}
           disabled={loading}
+          startIcon={loading && <CircularProgress size={18} />}
         >
           {loading ? "Creating..." : "Create Product"}
         </Button>

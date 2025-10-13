@@ -49,6 +49,9 @@ const categoryMap = {
   "b52d030f-1309-4099-bc85-b3d040fb9806": "Lock",
   "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc": "Door",
   "4f6e9c17-2a92-4694-a689-ab2fdeb887c6": "Mattress",
+  "2c81c619-b2b8-46ff-b4fb-aa729c54a491":"Melamine Door",
+  "aa7970bf-1fab-4f4a-9679-29e612391ddf":"Zrk Door",
+  "df248c6e-71b6-48bc-b3b5-c50f10ab39ca":"Malaysian Door",
 };
 
 const Products = () => {
@@ -112,7 +115,7 @@ const Products = () => {
       setEditProduct(null);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || "Failed to update product");
+      toast.error("Failed to update product");
     }
   };
 
@@ -140,7 +143,7 @@ const Products = () => {
     const headers = [
       "SKU",
       "Category",
-      "Name",
+      "Design Name",
       "Description",
       "Purchase Price",
       "Selling Price",
@@ -194,7 +197,6 @@ const Products = () => {
     link.click();
   };
 
-  console.log(products);
 
   const columns = [
     {
@@ -204,7 +206,7 @@ const Products = () => {
       minWidth: 150,
       renderCell: (params) => params?.row?.variants[0]?.sku || "—",
     },
-    { field: "name", headerName: "Name", flex: 1, minWidth: 150 },
+    { field: "name", headerName: "Design Name", flex: 1, minWidth: 150 },
     {
       field: "category",
       headerName: "Category",

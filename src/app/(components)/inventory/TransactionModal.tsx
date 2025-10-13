@@ -1,5 +1,6 @@
 "use client";
 
+import { reverseCategoryMap } from "@/lib/DoorConfig";
 import {
   Dialog,
   DialogTitle,
@@ -11,6 +12,7 @@ import {
   InputLabel,
   FormControl,
   Button,
+  CircularProgress,
 } from "@mui/material";
 import { useState } from "react";
 
@@ -102,11 +104,27 @@ export default function TransactionModal({
             setErrors({ ...errors, productId: "" });
             }}
           >
-            {products.map((p) => (
+            {/* {products.map((p) => (
               <MenuItem key={p.productId} value={p.productId}>
                 {p.name} (Stock: {p?.variants[0]?.stockQuantity})
               </MenuItem>
-            ))}
+            ))} */}
+            {products.map((p) => {
+              const categoryName = reverseCategoryMap[p.categoryId];
+  const categoryPrefix = categoryName
+    ? categoryName.charAt(0).toUpperCase()
+    : ""; 
+  const design = p.variants?.[0]?.attributes?.find((a: any) => a.name === "Design")?.value || "";
+  const size = p.variants?.[0]?.attributes?.find((a: any) => a.name === "Size")?.value || "";
+  const shortName = `${categoryPrefix}-${design?.charAt(0)?.toUpperCase() || ""}-${size}"`;
+
+  return (
+    <MenuItem key={p.productId} value={p.productId}>
+      {categoryName ? shortName: p.name} (Stock: {p?.variants?.[0]?.stockQuantity ?? 0})
+    </MenuItem>
+  );
+})}
+
           </Select>
           {errors.productId && (
           <p style={{ color: "red", fontSize: "0.8rem" }}>{errors.productId}</p>
@@ -152,6 +170,7 @@ export default function TransactionModal({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button variant="contained" onClick={handleSubmit}   
+        startIcon={loading && <CircularProgress size={18} />}
           disabled={loading || !form.productId || form.quantity <= 0 || !!errors.quantity}>
           {loading
     ? (transactionType === "sale" ? "Recording Sale..." : "Recording Purchase...")

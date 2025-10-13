@@ -18,10 +18,8 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/adminlogin");
-    } else {
-      router.push("/inv/dashboard");
     }
-  }, [router]);
+  }, [router]);  
 
   useEffect(() => {
     if (isDarkMode) {

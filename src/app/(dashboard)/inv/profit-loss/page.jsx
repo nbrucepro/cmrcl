@@ -45,7 +45,6 @@ export default function ProfitLossPage() {
 
       setData(res.data);
     } catch (error) {
-      console.error("Error fetching profit/loss:", error);
       message.error("Failed to load data");
     } finally {
       setLoading(false);

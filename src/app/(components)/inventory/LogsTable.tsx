@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { GridColDef } from "@mui/x-data-grid";
+import { reverseCategoryMap } from "@/lib/DoorConfig";
 
 const DataGrid = dynamic(
   () => import("@mui/x-data-grid").then((mod) => mod.DataGrid),
@@ -9,9 +10,28 @@ const DataGrid = dynamic(
 );
 
 export default function LogsTable({ rows, type,loading, }: { rows: any[]; type: "sales" | "purchases";loading?:boolean }) {
+  console.log(rows)
+
   const columns: GridColDef[] = [
-    // { field: "id", headerName: "ID", width: 90 },
-    { field: "productName", headerName: "Product", flex: 1 },
+    {
+      field: "categoryId",
+      headerName: "Category",
+      flex: 1,
+      valueGetter: (_, row) => {
+        const categoryName = reverseCategoryMap[row?.categoryId] || "";
+        const fnm = categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
+        return fnm;
+      },
+    },
+    {
+      field: "productName",
+      headerName: "Product Name",
+      flex: 1,
+      valueGetter: (_, row) => {
+        const size = row?.pAttributes?.find((a: any) => a.name === "Size")?.value || "";
+        return `${row?.productName || ""}${size ? ` ${size}"` : ""}`;
+      },      
+    },
     { field: "quantity", headerName: "Quantity", flex: 1 },
     {
       field: "price",

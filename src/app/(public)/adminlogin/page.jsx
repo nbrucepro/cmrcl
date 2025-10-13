@@ -29,18 +29,16 @@ export default function AdminLogin() {
         { withCredentials: true }
       );
       localStorage.setItem("token", res.data.token);
-      console.log(res.data)
       localStorage.setItem("adminName", res.data.admin?.name || "Admin");
       document.cookie = `adminToken=${res.data.token}; path=/; max-age=3600;`;
       setLoading(false);
       router.push("/inv/dashboard");
     } catch (err) {
       setLoading(false);
-      const message =
-        err.response?.data?.error || "Login failed. Please check your credentials.";
+      const message = "Login failed. Please check your credentials.";
       setError(message);
     }
-    setLoading(false);
+    // setLoading(false);
   };
 
   useEffect(() => {

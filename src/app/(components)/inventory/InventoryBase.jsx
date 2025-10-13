@@ -54,7 +54,6 @@ export default function InventoryBase({
   }, []);
 
   const handleSubmit = async (form, transactionType) => {
-    console.log(form)
     const body =
       transactionType === "sale"
         ? { productId: form.productId, quantity:form.quantity, unitPrice:form.price }
