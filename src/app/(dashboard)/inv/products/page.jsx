@@ -230,7 +230,12 @@ const Products = () => {
         </Typography>
       ),
     },
-    { field: "name", headerName: "Design Name", flex: 1, minWidth: 150 },
+    { field: "name", headerName: "Design Name", flex: 1, minWidth: 150,
+    valueGetter: (_, row) => {
+      const size = row?.variants[0]?.attributes?.find((a) => a.name === "Size")?.value || "";
+      return `${row?.name || ""}${size ? ` ${size}"` : ""}`;
+    },    
+    },
     {
       field: "purchasePrice",
       headerName: "Purchase Price",

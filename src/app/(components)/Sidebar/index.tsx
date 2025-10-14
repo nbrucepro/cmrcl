@@ -152,6 +152,20 @@ const Sidebar = () => {
     document.cookie = "adminToken=; path=/; max-age=0;";
     router.push("/adminlogin");
   };
+    React.useEffect(() => {
+      const mediaQuery = window.matchMedia("(max-width: 1020px)");
+  
+      dispatch(setIsSidebarCollapsed(mediaQuery.matches));
+  
+      const handleResize = (e: MediaQueryListEvent) => {
+        dispatch(setIsSidebarCollapsed(e.matches));
+      };
+  
+      mediaQuery.addEventListener("change", handleResize);
+  
+      return () => mediaQuery.removeEventListener("change", handleResize);
+    }, [dispatch]);
+  
   
   return (
     <div className={sidebarClassNames}>
