@@ -39,7 +39,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     "Sliding Door",
     "French Door",
   ];
-  const lockTypes = ["Padlock", "Deadbolt", "Lever Handle", "Knob Lock"];
+  const lockTypes = ["Handle lock"];
 
   const [variants, setVariants] = useState([
     {
