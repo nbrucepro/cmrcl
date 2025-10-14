@@ -83,7 +83,10 @@ const Products = () => {
         const skuMatch = p.variants?.some((v) =>
           v.sku?.toLowerCase().includes(searchTerm.toLowerCase())
         );
-        return nameMatch || skuMatch;
+        const lockCodeMatch = p.variants?.some((v) => v.attributes?.some((a)=>
+        a.name?.toLowerCase() === "lock code" &&  a.value?.toLowerCase().includes(searchTerm.toLowerCase())
+        )) 
+        return nameMatch || skuMatch || lockCodeMatch;
       });
     }    
     return filtered;
@@ -201,12 +204,21 @@ const Products = () => {
   const columns = [
     {
       field: "sku",
-      headerName: "Sku Id",
+      headerName: "SKU ID",
       flex: 1,
       minWidth: 150,
       renderCell: (params) => params?.row?.variants[0]?.sku || "—",
     },
-    { field: "name", headerName: "Design Name", flex: 1, minWidth: 150 },
+    {
+      field: "lockCode",
+      headerName: "Lock codes",
+      flex: 1,
+      minWidth: 150,
+      valueGetter: (_, row) => {
+        const lcode = row?.variants[0]?.attributes.find((a) => a.name === "Lock code")?.value || "";
+        return `${lcode || "—"}`;
+      }, 
+    },
     {
       field: "category",
       headerName: "Category",
@@ -214,21 +226,11 @@ const Products = () => {
       minWidth: 160,
       renderCell: (params) => (
         <Typography color="text.primary" noWrap>
-          {categoryMap[params?.row?.categoryId]}
+          {categoryMap[params?.row?.categoryId] || "—"}
         </Typography>
       ),
     },
-    {
-      field: "description",
-      headerName: "Description",
-      flex: 1,
-      minWidth: 200,
-      renderCell: (params) => (
-        <Typography color="text.primary text.center" noWrap>
-          {params.row.description || "—"}
-        </Typography>
-      ),
-    },
+    { field: "name", headerName: "Design Name", flex: 1, minWidth: 150 },
     {
       field: "purchasePrice",
       headerName: "Purchase Price",

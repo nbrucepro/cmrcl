@@ -12,6 +12,7 @@ import {
   Divider,
   Box,
   Paper,
+  CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Add, Delete } from "@mui/icons-material";
@@ -607,7 +608,7 @@ requiredAttrs.forEach((reqName) => {
                    error={!!errors[`attr_${attr.name}_${vIndex}`]}
                    helperText={errors[`attr_${attr.name}_${vIndex}`]}
                    onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
-                   disabled
+                   disabled={attr.name == "design" && true}
                  />
                )}
              </Grid>
