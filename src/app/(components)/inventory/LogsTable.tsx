@@ -10,8 +10,6 @@ const DataGrid = dynamic(
 );
 
 export default function LogsTable({ rows, type,loading, }: { rows: any[]; type: "sales" | "purchases";loading?:boolean }) {
-  console.log(rows)
-
   const columns: GridColDef[] = [
     {
       field: "categoryId",

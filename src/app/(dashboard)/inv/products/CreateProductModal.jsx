@@ -328,7 +328,6 @@ requiredAttrs.forEach((reqName) => {
 
     setLoading(true);
     try {
-      // console.log({...finalFormData, variants})
       await onCreate({ ...finalFormData, variants });
       onClose();
     } finally {

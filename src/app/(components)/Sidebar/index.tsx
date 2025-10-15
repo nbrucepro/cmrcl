@@ -4,11 +4,11 @@ import { useAppDispatch, useAppSelector } from "@/app/(dashboard)/redux";
 import { setIsSidebarCollapsed } from "@/state";
 import { Logout } from "@mui/icons-material";
 import {
+  ArrowDownCircle,
+  ArrowUpCircle,
   ChevronDown,
   LucideIcon,
   Menu,
-} from "lucide-react";
-import {
   LayoutDashboard,
   Boxes,
   Package,
@@ -236,7 +236,18 @@ const Sidebar = () => {
             isCollapsed={isSidebarCollapsed}
             // isChild={true}
           />
-
+            {/* <SidebarLink
+            href="/inv/finance/payable"
+            icon={ArrowDownCircle}
+            label="Payables"
+            isCollapsed={isSidebarCollapsed}
+          /> */}
+          <SidebarLink
+            href="/inv/finance/receivable"
+            icon={ArrowUpCircle}
+            label="Receivables"
+            isCollapsed={isSidebarCollapsed}
+          />
         <SidebarLink
           href="/inv/products"
           icon={Package}
@@ -259,20 +270,6 @@ const Sidebar = () => {
           activeParent={activeParent}
           setActiveParent={setActiveParent}
         >
-          <SidebarLink
-            href="/finance/payable"
-            icon={ArrowDownCircle}
-            label="Payable"
-            isCollapsed={isSidebarCollapsed}
-            isChild={true}
-          />
-          <SidebarLink
-            href="/finance/receivable"
-            icon={ArrowUpCircle}
-            label="Receivable"
-            isCollapsed={isSidebarCollapsed}
-            isChild={true}
-          />
         </SidebarLink> */}
         {/* <SidebarLink
           href="/inv/categories"

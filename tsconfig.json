@@ -22,6 +22,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(public)/layout.jsx", "src/app/layout.tsx", "src/app/(dashboard)/inv/products/CreateProductModal.jsx", "src/app/(dashboard)/inv/products/page.jsx", "src/app/(components)/inventory/InventoryBase.jsx", "src/app/(dashboard)/inv/dashboard/CardPopularProducts.jsx", "src/app/(dashboard)/inv/profit-loss/page.jsx", "src/app/(dashboard)/inv/dashboard/CardPurchaseSummary.jsx", "src/app/(dashboard)/inv/dashboard/CardSalesSummary.jsx", "src/app/(components)/Navbar/index.jsx", "src/app/(dashboard)/inv/dashboard/profitLossess.jsx", "src/app/(dashboard)/inv/dashboard/CardExpenseSummary.jsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/(public)/layout.jsx", "src/app/layout.tsx", "src/app/(dashboard)/inv/products/CreateProductModal.jsx", "src/app/(dashboard)/inv/products/page.jsx", "src/app/(components)/inventory/InventoryBase.jsx", "src/app/(dashboard)/inv/dashboard/CardPopularProducts.jsx", "src/app/(dashboard)/inv/profit-loss/page.jsx", "src/app/(dashboard)/inv/dashboard/CardPurchaseSummary.jsx", "src/app/(dashboard)/inv/dashboard/CardSalesSummary.jsx", "src/app/(components)/Navbar/index.jsx", "src/app/(dashboard)/inv/dashboard/profitLossess.jsx", "src/app/(dashboard)/inv/dashboard/CardExpenseSummary.jsx", "src/app/(dashboard)/inv/finance/receivable/page.jsx"],
   "exclude": ["node_modules"]
 }

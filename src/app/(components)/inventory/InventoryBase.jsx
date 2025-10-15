@@ -53,13 +53,15 @@ export default function InventoryBase({
     fetchLogs();
   }, []);
 
-  const handleSubmit = async (form, transactionType) => {
+  const handleSubmit = async (form, transactionType,hasBalance) => {
     const body =
       transactionType === "sale"
         ? { productId: form.productId, quantity:form.quantity, unitPrice:form.price }
         : { productId: form.productId, quantity:form.quantity, unitCost:form.price };
 
     try {
+      console.log(hasBalance)
+      // return 1;
       const response = await fetch(`${API_URL}api/products/${endpoint}`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
@@ -70,7 +72,43 @@ export default function InventoryBase({
         const errData = await response.json();
         throw new Error(errData.message || "Transaction failed");
       }
-
+      
+      const result = await response.json()
+      if(hasBalance){
+        console.log(result)
+        const balanceBody =
+        transactionType === "sale"
+          ? {
+              saleId: result.saleId,
+              customerName: form.customerName,
+              contactInfo: form.contactInfo,
+              amountDue: form.price * form.quantity,
+              amountPaid: form.amountPaid,
+              dueDate: form.dueDate,
+              notes: form.notes,
+            }
+          : {
+              purchaseId: result.purchaseId,
+              supplierName: form.supplierName,
+              contactInfo: form.contactInfo,
+              amountDue: form.price * form.quantity,
+              amountPaid: form.amountPaid,
+              dueDate: form.dueDate,
+              notes: form.notes,
+            };
+            console.log(balanceBody)
+      await fetch(
+        `${API_URL}api/products/${transactionType === "sale" ? "receivables" : "payables"}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+          },
+          body: JSON.stringify(balanceBody),
+        }
+      );
+    }
       toast.success("Transaction successful!");
       refetch();
       fetchLogs();
