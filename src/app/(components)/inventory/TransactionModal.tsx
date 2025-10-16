@@ -129,6 +129,14 @@ export default function TransactionModal({
 
                 setErrors({ ...errors, productId: "" });
               }}
+              MenuProps={{
+                PaperProps: {
+                  style : {
+                    maxHeight:300,
+                    overflowY: "auto"
+                  }
+                }
+              }}
             >
               {/* {products.map((p) => (
               <MenuItem key={p.productId} value={p.productId}>
