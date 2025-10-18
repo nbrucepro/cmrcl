@@ -21,6 +21,7 @@ import dayjs from "dayjs";
 import { reverseCategoryMap } from "@/lib/DoorConfig";
 import toast from "react-hot-toast";
 import DeleteConfirmModal from "@/app/(components)/inventory/DeleteConfirmModal";
+import { Delete, Payment, Visibility } from "@mui/icons-material";
 
 export default function ReceivablePage() {
   const [list, setList] = useState([]);
@@ -30,6 +31,11 @@ export default function ReceivablePage() {
   const [payLoading, setPayLoading] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
 const [selectedItem, setSelectedItem] = useState(null);
+const [detailsDialog, setDetailsDialog] = useState({
+  open: false,
+  payments: [],
+});
+
 
   const [payDialog, setPayDialog] = useState({
     open: false,
@@ -131,7 +137,7 @@ const [selectedItem, setSelectedItem] = useState(null);
       renderCell: (params) => (
         <Tooltip title={`Contact: ${params.row.contactInfo || "N/A"}`}>
           <Typography>
-            {params.value.charAt(0).toUpperCase() + params.value.slice(1)}
+            {params.value.charAt(0).toUpperCase() + params.value.slice(1) || "—"}
           </Typography>
         </Tooltip>
       ),
@@ -183,7 +189,7 @@ const [selectedItem, setSelectedItem] = useState(null);
         console.log(balance)
         return (
           <Typography color={balance > 0 ? "error.main" : "success.main"}>
-            Rs {balance.toFixed(2) || "-"}
+            Rs {balance > 0 ? balance.toFixed(2) : 0}
           </Typography>
         );
       },
@@ -213,41 +219,106 @@ const [selectedItem, setSelectedItem] = useState(null);
       headerName: "Due Date",
       flex: 1,
       renderCell: (params) =>
-        params.value ? dayjs(params.value).format("YYYY-MM-DD") : "-",
+        params.value ? dayjs(params.value).format("YYYY-MM-DD") : "—",
     },
     {
       field: "actions",
       headerName: "Actions",
-      flex: 1.5,
-      renderCell: (params) => (
-        <Stack direction="row" spacing={1}>
+      flex: 2.8,
+      minWidth: 400,
+      sortable: false,
+      renderCell: (params) => {
+        const isPaid = params.row.status === "paid";
+    
+        return (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              flexWrap: "nowrap",
+              overflowX: "auto",
+              justifyContent:"start",
+              // "&::-webkit-scrollbar": { display: "none" },
+              gap: 0.5,
+                     flexWrap: "nowrap",
+                      //  overflow: "hidden",
+              
+            }}
+          >
+            {!isPaid && (
+              <Tooltip title="Record Payment">
+                <Button
+                  startIcon={<Payment />}
+                  variant="contained"
+                  size="small"
+                  color="primary"
+                  sx={{
+                    p: "2px 6px",
+                    minWidth: "auto",
+                    fontSize: "0.7rem",
+                    borderRadius: 1.5,
+                    "& .MuiButton-startIcon": { mr: 0.3 },
+                  }}
+                  onClick={() =>
+                    setPayDialog({
+                      open: true,
+                      receivableId: params.row.receivableId,
+                      amount: params.row.balance || 0,
+                      method: "",
+                      reference: "",
+                      notes: "",
+                    })
+                  }
+                >
+                  Pay
+                </Button>
+              </Tooltip>
+            )}
+    
+    <Tooltip title="View Details">
           <Button
+            startIcon={<Visibility />}
+            color="info"
             size="small"
-            variant="outlined"
+            sx={{
+              p: "2px 6px",
+              minWidth: "auto",
+              fontSize: "0.7rem",
+              borderRadius: 1.5,
+              "& .MuiButton-startIcon": { mr: 0.3 },
+            }}
             onClick={() =>
-              setPayDialog({
-                open: true,
-                receivableId: params.row.receivableId,
-                amount: params.row.amountDue,
-                method: "",     // explicitly controlled
-                reference: "",
-                notes: "",
-              })
+              setDetailsDialog({ open: true, payments: params.row.payments })
             }
           >
-            Pay
+            
           </Button>
+        </Tooltip>
+    
+        <Tooltip title="Delete Receivable">
           <Button
-            size="small"
+            startIcon={<Delete />}
             color="error"
-            variant="text"
+            size="small"
+            sx={{
+              p: "2px 6px",
+              minWidth: "auto",
+              fontSize: "0.7rem",
+              borderRadius: 1.5,
+              "& .MuiButton-startIcon": { mr: 0.3 },
+            }}
             onClick={() => handleDeleteClick(params.row.receivableId)}
           >
-            Delete
+            
           </Button>
-        </Stack>
-      ),
+        </Tooltip>
+          </Box>
+        );
+      },
     },
+    
+    
   ];
 
   // --- Filter/Search logic ---
@@ -293,6 +364,7 @@ const [selectedItem, setSelectedItem] = useState(null);
         <Box
           sx={{
             height: { xs: 420, md: 600 },
+            overflowX: "auto",
             "& .MuiDataGrid-root": {
               border: "none",
               minWidth: "100%",
@@ -390,6 +462,7 @@ const [selectedItem, setSelectedItem] = useState(null);
             onChange={(e) =>
               setPayDialog({ ...payDialog, method: e.target.value })
             }
+            hidden={true}
           >
             <MenuItem value="Cash">Cash</MenuItem>
             <MenuItem value="Bank Transfer">Bank Transfer</MenuItem>
@@ -405,6 +478,7 @@ const [selectedItem, setSelectedItem] = useState(null);
             onChange={(e) =>
               setPayDialog({ ...payDialog, reference: e.target.value })
             }
+            hidden={true}
           />
 
           <TextField
@@ -442,6 +516,59 @@ const [selectedItem, setSelectedItem] = useState(null);
           </Button>
         </DialogActions>
       </Dialog>
+      <Dialog
+  open={detailsDialog.open}
+  onClose={() => setDetailsDialog({ open: false, payments: [] })}
+  maxWidth="sm"
+  fullWidth
+>
+  <DialogTitle>Payment Details</DialogTitle>
+  <DialogContent dividers>
+    {detailsDialog.payments.length === 0 ? (
+      <Typography>No payments found for this receivable.</Typography>
+    ) : (
+      detailsDialog.payments.map((p, index) => (
+        <Box
+          key={p.paymentId || index}
+          sx={{
+            mb: 1.5,
+            p: 1.5,
+            border: "1px solid #e0e0e0",
+            borderRadius: 2,
+            backgroundColor: "#fafafa",
+          }}
+        >
+          <Typography variant="body2">
+            <strong>Amount:</strong> Rs {p.amount.toFixed(2)}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Date:</strong>{" "}
+            {dayjs(p.paymentDate).format("YYYY-MM-DD HH:mm")}
+          </Typography>
+          <Typography variant="body2">
+            <strong>Method:</strong> {p.method || "N/A"}
+          </Typography>
+          {p.reference && (
+            <Typography variant="body2">
+              <strong>Reference:</strong> {p.reference}
+            </Typography>
+          )}
+          {p.notes && (
+            <Typography variant="body2">
+              <strong>Notes:</strong> {p.notes}
+            </Typography>
+          )}
+        </Box>
+      ))
+    )}
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setDetailsDialog({ open: false, payments: [] })}>
+      Close
+    </Button>
+  </DialogActions>
+</Dialog>
+
       <DeleteConfirmModal
   open={deleteOpen}
   onClose={() => setDeleteOpen(false)}
