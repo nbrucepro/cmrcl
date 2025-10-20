@@ -26,7 +26,7 @@ export default function AdminLogin() {
       const res = await axios.post(
         `${API_URL}api/admin/login`,
         { email, password },
-        { withCredentials: true }
+        // { withCredentials: true }
       );
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("adminName", res.data.admin?.name || "Admin");
