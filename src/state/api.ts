@@ -56,6 +56,11 @@ export interface User {
   name: string;
   email: string;
 }
+export interface Category {
+  categoryId: string;
+  name: string;
+}
+
 
 export const api = createApi({
   baseQuery: fetchBaseQuery({ 
@@ -69,7 +74,7 @@ export const api = createApi({
     }
   }),
   reducerPath: "api",
-  tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses"],
+  tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses","Categories"],
   endpoints: (build) => ({
     getDashboardMetrics: build.query<DashboardMetrics, {month:number;year:number}>({
       // query: () => "/dashboard",
@@ -117,6 +122,11 @@ export const api = createApi({
       query: () => "/expenses",
       providesTags: ["Expenses"],
     }),
+    getCategories: build.query<Category[], void>({
+      query: () => "/api/categories",
+      providesTags: ["Categories"], 
+    }),
+    
   }),
 });
 export const {
@@ -127,4 +137,5 @@ export const {
   useDeleteProductMutation,
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,
+  useGetCategoriesQuery
 } = api;

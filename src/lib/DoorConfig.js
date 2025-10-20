@@ -1,3 +1,6 @@
+import { useMemo } from "react";
+import { useGetCategoriesQuery } from "@/state/api";
+
 export const designOptions = {
       malaysian: {
         Clifton: ["45", "42", "40", "36", "34", "30", "27"],
@@ -30,7 +33,7 @@ export const mattressHeights = ["4 inch", "5 inch", "6 inch", "8 inch"];
 // lib/DoorConfig.js
 export const categoryAttributes = {
   // Door
-  "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc": [
+  door: [
     { name: "Width", value: "" },
     { name: "Length", value: "" },
     { name: "Thickness", value: "" },
@@ -38,12 +41,12 @@ export const categoryAttributes = {
   ],
 
   // Lock
-  "b52d030f-1309-4099-bc85-b3d040fb9806": [
+  lock: [
     { name: "Lock code", value: "" },
   ],
 
   // Mattress
-  "4f6e9c17-2a92-4694-a689-ab2fdeb887c6": [
+  mattress: [
     { name: "Size", value: "" },
     { name: "Height", value: "" },
   ],
@@ -72,8 +75,31 @@ export const categoryIdMap = {
   lock:"b52d030f-1309-4099-bc85-b3d040fb9806",
    door  :"c25b2efb-ec58-4036-a38e-65e9c2c5bcfc"
 };
-export const reverseCategoryMap = Object.fromEntries(
-  Object.entries(categoryIdMap).map(([key, value]) => [value, key])
-);
+export const useCategoryMap = () => {
+  const { data: categories = [], isLoading } = useGetCategoriesQuery();
+
+  const normalize = (name) => name.trim().toLowerCase();
+
+  const categoryMap = useMemo(() => {
+    const map = {};
+    categories.forEach((cat) => {
+      const key = normalize(cat.name);
+      // prevent overwriting if key already exists
+      if (!map[key]) map[key] = cat.categoryId;
+    });
+    return map;
+  }, [categories]);
+
+  const reverseCategoryMap = useMemo(() => {
+    const map = {};
+    Object.entries(categoryMap).forEach(([name, id]) => {
+      map[id] = name;
+    });
+    return map;
+  }, [categoryMap]);
+
+  return { categoryMap, reverseCategoryMap, isLoading, categories };
+};
+
 
     

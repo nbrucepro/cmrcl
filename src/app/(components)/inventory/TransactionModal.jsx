@@ -1,6 +1,6 @@
 "use client";
 
-import { reverseCategoryMap } from "@/lib/DoorConfig";
+import { useCategoryMap } from "@/lib/DoorConfig";
 import {
   Dialog,
   DialogTitle,
@@ -24,16 +24,8 @@ export default function TransactionModal({
   products,
   tType,
   onSubmit,
-}: {
-  open: boolean;
-  onClose: () => void;
-  products: any[];
-  tType: any;
-  onSubmit: (form: any, type: "sale" | "purchase", hasBalance: any) => void;
 }) {
-  const [transactionType, setTransactionType] = useState<"sale" | "purchase">(
-    tType || "sale"
-  );
+  const [transactionType, setTransactionType] = useState(tType || "sale");
   const [form, setForm] = useState({
     productId: "",
     quantity: 1,
@@ -45,16 +37,15 @@ export default function TransactionModal({
     dueDate: "",
     notes: "",
   });
-  const [errors, setErrors] = useState<{
-    quantity?: string;
-    productId?: string;
-  }>({});
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [hasBalance, setHasBalance] = useState(false);
+  const { reverseCategoryMap } = useCategoryMap();
+
 
   const handleSubmit = async () => {
     const product = products.find((p) => p.productId === form.productId);
-    const newErrors: any = {};
+    const newErrors = {};
 
     if (!form.productId) newErrors.productId = "Please select a product.";
     if (form.quantity <= 0)
@@ -94,7 +85,7 @@ export default function TransactionModal({
             <Select
               value={transactionType}
               onChange={(e) =>
-                setTransactionType(e.target.value as "sale" | "purchase")
+                setTransactionType(e.target.value)
               }
               label="Transaction Type"
               disabled
@@ -150,11 +141,11 @@ export default function TransactionModal({
                   : "";
                 const design =
                   p.variants?.[0]?.attributes?.find(
-                    (a: any) => a.name === "Design"
+                    (a) => a.name === "Design"
                   )?.value || "";
                 const size =
                   p.variants?.[0]?.attributes?.find(
-                    (a: any) => a.name === "Size"
+                    (a) => a.name === "Size"
                   )?.value || "";
                 const shortName = `${categoryPrefix}-${
                   design?.charAt(0)?.toUpperCase() || ""

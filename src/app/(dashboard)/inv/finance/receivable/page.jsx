@@ -18,10 +18,10 @@ import {
 import { DataGrid } from "@mui/x-data-grid";
 import Loader from "@/app/(components)/common/Loader";
 import dayjs from "dayjs";
-import { reverseCategoryMap } from "@/lib/DoorConfig";
 import toast from "react-hot-toast";
 import DeleteConfirmModal from "@/app/(components)/inventory/DeleteConfirmModal";
 import { Delete, Payment, Visibility } from "@mui/icons-material";
+import { useCategoryMap } from "@/lib/DoorConfig";
 
 export default function ReceivablePage() {
   const [list, setList] = useState([]);
@@ -30,12 +30,12 @@ export default function ReceivablePage() {
   const [search, setSearch] = useState("");
   const [payLoading, setPayLoading] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
-const [selectedItem, setSelectedItem] = useState(null);
-const [detailsDialog, setDetailsDialog] = useState({
-  open: false,
-  payments: [],
-});
-
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [detailsDialog, setDetailsDialog] = useState({
+    open: false,
+    payments: [],
+  });
+  const { reverseCategoryMap } = useCategoryMap();
 
   const [payDialog, setPayDialog] = useState({
     open: false,
@@ -68,7 +68,7 @@ const [detailsDialog, setDetailsDialog] = useState({
       setList(data);
       setFilteredList(data);
     } catch (error) {
-      console.error("Failed to fetch receivables:", error);
+      return;
     }
     setLoading(false);
   }
@@ -101,11 +101,10 @@ const [detailsDialog, setDetailsDialog] = useState({
         });
         await fetchData();
       } else {
-        console.error("Payment failed:", await res.text());
         toast("Failed to record payment. Please try again.");
       }
     } catch (error) {
-      console.error("Error recording payment:", error);
+      return;
     } finally {
       setPayLoading(false);
     }
@@ -114,7 +113,7 @@ const [detailsDialog, setDetailsDialog] = useState({
     setSelectedItem(item);
     setDeleteOpen(true);
   };
-  
+
   const handleConfirmDelete = async () => {
     try {
       await fetch(`${API_URL}api/products/receivables/${selectedItem}`, {
@@ -137,7 +136,8 @@ const [detailsDialog, setDetailsDialog] = useState({
       renderCell: (params) => (
         <Tooltip title={`Contact: ${params.row.contactInfo || "N/A"}`}>
           <Typography>
-            {params.value.charAt(0).toUpperCase() + params.value.slice(1) || "—"}
+            {params.value.charAt(0).toUpperCase() + params.value.slice(1) ||
+              "—"}
           </Typography>
         </Tooltip>
       ),
@@ -185,8 +185,9 @@ const [detailsDialog, setDetailsDialog] = useState({
       flex: 1,
       // valueGetter: (params) => params.row.amountDue - params.row.amountPaid,
       renderCell: (params) => {
-        const balance = params?.row?.sale?.totalAmount - params?.row?.amountPaid ;
-        console.log(balance)
+        const balance =
+          params?.row?.sale?.totalAmount - params?.row?.amountPaid;
+
         return (
           <Typography color={balance > 0 ? "error.main" : "success.main"}>
             Rs {balance > 0 ? balance.toFixed(2) : 0}
@@ -229,7 +230,7 @@ const [detailsDialog, setDetailsDialog] = useState({
       sortable: false,
       renderCell: (params) => {
         const isPaid = params.row.status === "paid";
-    
+
         return (
           <Box
             sx={{
@@ -238,12 +239,11 @@ const [detailsDialog, setDetailsDialog] = useState({
               gap: 1,
               flexWrap: "nowrap",
               overflowX: "auto",
-              justifyContent:"start",
+              justifyContent: "start",
               // "&::-webkit-scrollbar": { display: "none" },
               gap: 0.5,
-                     flexWrap: "nowrap",
-                      //  overflow: "hidden",
-              
+              flexWrap: "nowrap",
+              //  overflow: "hidden",
             }}
           >
             {!isPaid && (
@@ -275,50 +275,47 @@ const [detailsDialog, setDetailsDialog] = useState({
                 </Button>
               </Tooltip>
             )}
-    
-    <Tooltip title="View Details">
-          <Button
-            startIcon={<Visibility />}
-            color="info"
-            size="small"
-            sx={{
-              p: "2px 6px",
-              minWidth: "auto",
-              fontSize: "0.7rem",
-              borderRadius: 1.5,
-              "& .MuiButton-startIcon": { mr: 0.3 },
-            }}
-            onClick={() =>
-              setDetailsDialog({ open: true, payments: params.row.payments })
-            }
-          >
-            
-          </Button>
-        </Tooltip>
-    
-        <Tooltip title="Delete Receivable">
-          <Button
-            startIcon={<Delete />}
-            color="error"
-            size="small"
-            sx={{
-              p: "2px 6px",
-              minWidth: "auto",
-              fontSize: "0.7rem",
-              borderRadius: 1.5,
-              "& .MuiButton-startIcon": { mr: 0.3 },
-            }}
-            onClick={() => handleDeleteClick(params.row.receivableId)}
-          >
-            
-          </Button>
-        </Tooltip>
+
+            <Tooltip title="View Details">
+              <Button
+                startIcon={<Visibility />}
+                color="info"
+                size="small"
+                sx={{
+                  p: "2px 6px",
+                  minWidth: "auto",
+                  fontSize: "0.7rem",
+                  borderRadius: 1.5,
+                  "& .MuiButton-startIcon": { mr: 0.3 },
+                }}
+                onClick={() =>
+                  setDetailsDialog({
+                    open: true,
+                    payments: params.row.payments,
+                  })
+                }
+              ></Button>
+            </Tooltip>
+
+            <Tooltip title="Delete Receivable">
+              <Button
+                startIcon={<Delete />}
+                color="error"
+                size="small"
+                sx={{
+                  p: "2px 6px",
+                  minWidth: "auto",
+                  fontSize: "0.7rem",
+                  borderRadius: 1.5,
+                  "& .MuiButton-startIcon": { mr: 0.3 },
+                }}
+                onClick={() => handleDeleteClick(params.row.receivableId)}
+              ></Button>
+            </Tooltip>
           </Box>
         );
       },
     },
-    
-    
   ];
 
   // --- Filter/Search logic ---
@@ -360,73 +357,73 @@ const [detailsDialog, setDetailsDialog] = useState({
       {loading ? (
         <Loader />
       ) : (
-       <>
-        <Box
-          sx={{
-            height: { xs: 420, md: 600 },
-            overflowX: "auto",
-            "& .MuiDataGrid-root": {
-              border: "none",
-              minWidth: "100%",
-            },
-            "& .MuiDataGrid-columnHeaders": {
-              fontWeight: "bold",
-              backgroundColor: "#f9fafb",
-              whiteSpace: "nowrap",
-            },
-            "& .MuiDataGrid-cell": {
-              display: "flex",
-              alignItems: "center",
-              //  justifyContent: "center",
-              //  textAlign: "center",
-              lineHeight: 1.4,
-              whiteSpace: "normal", // allow wrapping
-              wordBreak: "break-word", // break long words
-              overflow: "visible",
-            },
-            "& .MuiDataGrid-cellContent": {
-              overflow: "visible !important",
-              textOverflow: "unset !important",
-              whiteSpace: "normal !important",
-            },
-            "& .MuiDataGrid-virtualScroller": {
+        <>
+          <Box
+            sx={{
+              height: { xs: 420, md: 600 },
               overflowX: "auto",
-            },
-            "& .MuiDataGrid-footerContainer": {
-              backgroundColor: "#fafafa",
-            },
-          }}
-        >
-          <DataGrid
-            autoHeight
-            rows={filteredList}
-            columns={columns.map((col) => ({
-              ...col,
-              flex: col.flex || 1,
-              minWidth: 140, // prevent squishing
-            }))}
-            getRowId={(row) => row.receivableId}
-            disableRowSelectionOnClick
-            density="comfortable"
-            initialState={{
-              pagination: { paginationModel: { pageSize: 10 } },
+              "& .MuiDataGrid-root": {
+                border: "none",
+                minWidth: "100%",
+              },
+              "& .MuiDataGrid-columnHeaders": {
+                fontWeight: "bold",
+                backgroundColor: "#f9fafb",
+                whiteSpace: "nowrap",
+              },
+              "& .MuiDataGrid-cell": {
+                display: "flex",
+                alignItems: "center",
+                //  justifyContent: "center",
+                //  textAlign: "center",
+                lineHeight: 1.4,
+                whiteSpace: "normal", // allow wrapping
+                wordBreak: "break-word", // break long words
+                overflow: "visible",
+              },
+              "& .MuiDataGrid-cellContent": {
+                overflow: "visible !important",
+                textOverflow: "unset !important",
+                whiteSpace: "normal !important",
+              },
+              "& .MuiDataGrid-virtualScroller": {
+                overflowX: "auto",
+              },
+              "& .MuiDataGrid-footerContainer": {
+                backgroundColor: "#fafafa",
+              },
             }}
-            pageSizeOptions={[5, 10, 20]}
-          />
-        </Box>
-              <Box
-              mt={2}
-              display="flex"
-              justifyContent="space-between"
-              alignItems="center"
-            >
-              <Typography variant="subtitle1">
-                Total Due: <strong>Rs {totalDue.toFixed(2)}</strong>
-              </Typography>
-              <Typography variant="subtitle1" color="success">
-                Total Paid: <strong>Rs {totalPaid.toFixed(2)}</strong>
-              </Typography>
-            </Box>
+          >
+            <DataGrid
+              autoHeight
+              rows={filteredList}
+              columns={columns.map((col) => ({
+                ...col,
+                flex: col.flex || 1,
+                minWidth: 140, // prevent squishing
+              }))}
+              getRowId={(row) => row.receivableId}
+              disableRowSelectionOnClick
+              density="comfortable"
+              initialState={{
+                pagination: { paginationModel: { pageSize: 10 } },
+              }}
+              pageSizeOptions={[5, 10, 20]}
+            />
+          </Box>
+          <Box
+            mt={2}
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
+            <Typography variant="subtitle1">
+              Total Due: <strong>Rs {totalDue.toFixed(2)}</strong>
+            </Typography>
+            <Typography variant="subtitle1" color="success">
+              Total Paid: <strong>Rs {totalPaid.toFixed(2)}</strong>
+            </Typography>
+          </Box>
         </>
       )}
 
@@ -436,7 +433,14 @@ const [detailsDialog, setDetailsDialog] = useState({
       <Dialog
         open={payDialog.open}
         onClose={() =>
-          setPayDialog({ open: false, receivableId: null, amount: 0, method: "",reference: "", notes: "", })
+          setPayDialog({
+            open: false,
+            receivableId: null,
+            amount: 0,
+            method: "",
+            reference: "",
+            notes: "",
+          })
         }
       >
         <DialogTitle>Record Payment</DialogTitle>
@@ -497,8 +501,14 @@ const [detailsDialog, setDetailsDialog] = useState({
         <DialogActions>
           <Button
             onClick={() =>
-              setPayDialog({ open: false, receivableId: null, amount: 0, method: "",reference: "", notes: "", })
-  
+              setPayDialog({
+                open: false,
+                receivableId: null,
+                amount: 0,
+                method: "",
+                reference: "",
+                notes: "",
+              })
             }
           >
             Cancel
@@ -517,64 +527,66 @@ const [detailsDialog, setDetailsDialog] = useState({
         </DialogActions>
       </Dialog>
       <Dialog
-  open={detailsDialog.open}
-  onClose={() => setDetailsDialog({ open: false, payments: [] })}
-  maxWidth="sm"
-  fullWidth
->
-  <DialogTitle>Payment Details</DialogTitle>
-  <DialogContent dividers>
-    {detailsDialog.payments.length === 0 ? (
-      <Typography>No payments found for this receivable.</Typography>
-    ) : (
-      detailsDialog.payments.map((p, index) => (
-        <Box
-          key={p.paymentId || index}
-          sx={{
-            mb: 1.5,
-            p: 1.5,
-            border: "1px solid #e0e0e0",
-            borderRadius: 2,
-            backgroundColor: "#fafafa",
-          }}
-        >
-          <Typography variant="body2">
-            <strong>Amount:</strong> Rs {p.amount.toFixed(2)}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Date:</strong>{" "}
-            {dayjs(p.paymentDate).format("YYYY-MM-DD HH:mm")}
-          </Typography>
-          <Typography variant="body2">
-            <strong>Method:</strong> {p.method || "N/A"}
-          </Typography>
-          {p.reference && (
-            <Typography variant="body2">
-              <strong>Reference:</strong> {p.reference}
-            </Typography>
+        open={detailsDialog.open}
+        onClose={() => setDetailsDialog({ open: false, payments: [] })}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Payment Details</DialogTitle>
+        <DialogContent dividers>
+          {detailsDialog.payments.length === 0 ? (
+            <Typography>No payments found for this receivable.</Typography>
+          ) : (
+            detailsDialog.payments.map((p, index) => (
+              <Box
+                key={p.paymentId || index}
+                sx={{
+                  mb: 1.5,
+                  p: 1.5,
+                  border: "1px solid #e0e0e0",
+                  borderRadius: 2,
+                  backgroundColor: "#fafafa",
+                }}
+              >
+                <Typography variant="body2">
+                  <strong>Amount:</strong> Rs {p.amount.toFixed(2)}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Date:</strong>{" "}
+                  {dayjs(p.paymentDate).format("YYYY-MM-DD HH:mm")}
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Method:</strong> {p.method || "N/A"}
+                </Typography>
+                {p.reference && (
+                  <Typography variant="body2">
+                    <strong>Reference:</strong> {p.reference}
+                  </Typography>
+                )}
+                {p.notes && (
+                  <Typography variant="body2">
+                    <strong>Notes:</strong> {p.notes}
+                  </Typography>
+                )}
+              </Box>
+            ))
           )}
-          {p.notes && (
-            <Typography variant="body2">
-              <strong>Notes:</strong> {p.notes}
-            </Typography>
-          )}
-        </Box>
-      ))
-    )}
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setDetailsDialog({ open: false, payments: [] })}>
-      Close
-    </Button>
-  </DialogActions>
-</Dialog>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setDetailsDialog({ open: false, payments: [] })}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <DeleteConfirmModal
-  open={deleteOpen}
-  onClose={() => setDeleteOpen(false)}
-  onDelete={handleConfirmDelete}
-  itemName={"Receivable"}
-/>
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        onDelete={handleConfirmDelete}
+        itemName={"Receivable"}
+      />
     </Box>
   );
 }

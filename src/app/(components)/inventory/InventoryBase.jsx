@@ -9,10 +9,13 @@ import LogsTable from "@/app/(components)/inventory/LogsTable";
 import toast from "react-hot-toast";
 import { Button, TextField } from "@mui/material";
 import { saveAs } from "file-saver";
-import { FilterAlt, RestartAlt, Download, AddCircle } from "@mui/icons-material";
+import {
+  FilterAlt,
+  RestartAlt,
+  Download,
+  AddCircle,
+} from "@mui/icons-material";
 import { Tooltip } from "@mui/material";
-
-
 
 export default function InventoryBase({
   title,
@@ -36,7 +39,10 @@ export default function InventoryBase({
       setLoading(true);
       const res = await fetch(`${API_URL}api/products/${endpoint}`, {
         method: "GET",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       });
       if (!res.ok) throw new Error(`Failed to fetch ${endpoint}`);
       const data = await res.json();
@@ -53,18 +59,27 @@ export default function InventoryBase({
     fetchLogs();
   }, []);
 
-  const handleSubmit = async (form, transactionType,hasBalance) => {
+  const handleSubmit = async (form, transactionType, hasBalance) => {
     const body =
       transactionType === "sale"
-        ? { productId: form.productId, quantity:form.quantity, unitPrice:form.price }
-        : { productId: form.productId, quantity:form.quantity, unitCost:form.price };
+        ? {
+            productId: form.productId,
+            quantity: form.quantity,
+            unitPrice: form.price,
+          }
+        : {
+            productId: form.productId,
+            quantity: form.quantity,
+            unitCost: form.price,
+          };
 
     try {
-      console.log(hasBalance)
-      // return 1;
       const response = await fetch(`${API_URL}api/products/${endpoint}`, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(body),
       });
 
@@ -72,49 +87,49 @@ export default function InventoryBase({
         const errData = await response.json();
         throw new Error(errData.message || "Transaction failed");
       }
-      
-      const result = await response.json()
-      if(hasBalance){
-        console.log(result)
+
+      const result = await response.json();
+      if (hasBalance) {
         const balanceBody =
-        transactionType === "sale"
-          ? {
-              saleId: result.saleId,
-              customerName: form.customerName,
-              contactInfo: form.contactInfo,
-              amountDue: form.price * form.quantity,
-              amountPaid: form.amountPaid,
-              dueDate: form.dueDate,
-              notes: form.notes,
-            }
-          : {
-              purchaseId: result.purchaseId,
-              supplierName: form.supplierName,
-              contactInfo: form.contactInfo,
-              amountDue: form.price * form.quantity,
-              amountPaid: form.amountPaid,
-              dueDate: form.dueDate,
-              notes: form.notes,
-            };
-            console.log(balanceBody)
-      await fetch(
-        `${API_URL}api/products/${transactionType === "sale" ? "receivables" : "payables"}`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify(balanceBody),
-        }
-      );
-    }
+          transactionType === "sale"
+            ? {
+                saleId: result.saleId,
+                customerName: form.customerName,
+                contactInfo: form.contactInfo,
+                amountDue: form.price * form.quantity,
+                amountPaid: form.amountPaid,
+                dueDate: form.dueDate,
+                notes: form.notes,
+              }
+            : {
+                purchaseId: result.purchaseId,
+                supplierName: form.supplierName,
+                contactInfo: form.contactInfo,
+                amountDue: form.price * form.quantity,
+                amountPaid: form.amountPaid,
+                dueDate: form.dueDate,
+                notes: form.notes,
+              };
+        await fetch(
+          `${API_URL}api/products/${
+            transactionType === "sale" ? "receivables" : "payables"
+          }`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(balanceBody),
+          }
+        );
+      }
       toast.success("Transaction successful!");
       refetch();
       fetchLogs();
       setModalOpen(false);
     } catch (err) {
-      toast.error(err.message || "Something went wrong");
+      toast.error("Something went wrong");
     }
   };
 
@@ -140,9 +155,13 @@ export default function InventoryBase({
     const headers = Object.keys(filteredLogs[0]);
     const csvRows = [
       headers.join(","),
-      ...filteredLogs.map((log) => headers.map((h) => JSON.stringify(log[h] ?? "")).join(",")),
+      ...filteredLogs.map((log) =>
+        headers.map((h) => JSON.stringify(log[h] ?? "")).join(",")
+      ),
     ];
-    const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const blob = new Blob([csvRows.join("\n")], {
+      type: "text/csv;charset=utf-8;",
+    });
     saveAs(blob, `${endpoint}_logs_${Date.now()}.csv`);
     toast.success("Download started");
   };
@@ -157,7 +176,7 @@ export default function InventoryBase({
       </div>
     );
   }
-  
+
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
@@ -184,113 +203,117 @@ export default function InventoryBase({
       </div>
     );
   }
-  
+
   return (
     <div className="flex flex-col">
-    <Header name={`${title}`} />
-    {/* CONTROL BAR */}
-<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 my-6 bg-white/60 backdrop-blur-md shadow-sm p-4 rounded-2xl border border-gray-100">
-  
-  {/* Date Filters */}
-  <div className="flex flex-wrap items-end gap-3">
-    <TextField
-      label="From"
-      type="date"
-      value={fromDate}
-      onChange={(e) => setFromDate(e.target.value)}
-      InputLabelProps={{ shrink: true }}
-      size="small"
-      sx={{ minWidth: 160 }}
-    />
-    <TextField
-      label="To"
-      type="date"
-      value={toDate}
-      onChange={(e) => setToDate(e.target.value)}
-      InputLabelProps={{ shrink: true }}
-      size="small"
-      sx={{ minWidth: 160 }}
-    />
+      <Header name={`${title}`} />
+      {/* CONTROL BAR */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 my-6 bg-white/60 backdrop-blur-md shadow-sm p-4 rounded-2xl border border-gray-100">
+        {/* Date Filters */}
+        <div className="flex flex-wrap items-end gap-3">
+          <TextField
+            label="From"
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            size="small"
+            sx={{ minWidth: 160 }}
+          />
+          <TextField
+            label="To"
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+            size="small"
+            sx={{ minWidth: 160 }}
+          />
 
-    <Tooltip title="Apply Filter">
-      <Button
-        variant="outlined"
-        color="primary"
-        startIcon={<FilterAlt />}
-        onClick={handleFilter}
-        sx={{
-          textTransform: "none",
-          borderRadius: "12px",
-          px: 2.5,
-          py: 1,
-        }}
-      >
-        Filter
-      </Button>
-    </Tooltip>
+          <Tooltip title="Apply Filter">
+            <Button
+              variant="outlined"
+              color="primary"
+              startIcon={<FilterAlt />}
+              onClick={handleFilter}
+              sx={{
+                textTransform: "none",
+                borderRadius: "12px",
+                px: 2.5,
+                py: 1,
+              }}
+            >
+              Filter
+            </Button>
+          </Tooltip>
 
-    <Tooltip title="Reset Filters">
-      <Button
-        variant="outlined"
-        color="secondary"
-        startIcon={<RestartAlt />}
-        onClick={handleReset}
-        sx={{
-          textTransform: "none",
-          borderRadius: "12px",
-          px: 2.5,
-          py: 1,
-        }}
-      >
-        Reset Filters
-      </Button>
-    </Tooltip>
-  </div>
+          <Tooltip title="Reset Filters">
+            <Button
+              variant="outlined"
+              color="secondary"
+              startIcon={<RestartAlt />}
+              onClick={handleReset}
+              sx={{
+                textTransform: "none",
+                borderRadius: "12px",
+                px: 2.5,
+                py: 1,
+              }}
+            >
+              Reset Filters
+            </Button>
+          </Tooltip>
+        </div>
 
-  {/* Action Buttons */}
-  <div className="flex flex-wrap gap-3 md:justify-end">
-    <Tooltip title="Download CSV">
-      <Button
-        variant="outlined"
-        color="success"
-        startIcon={<Download />}
-        onClick={handleDownload}
-        sx={{
-          textTransform: "none",
-          borderRadius: "12px",
-          px: 2.5,
-          py: 1,
-        }}
-      >
-        Download
-      </Button>
-    </Tooltip>
+        {/* Action Buttons */}
+        <div className="flex flex-wrap gap-3 md:justify-end">
+          <Tooltip title="Download CSV">
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<Download />}
+              onClick={handleDownload}
+              sx={{
+                textTransform: "none",
+                borderRadius: "12px",
+                px: 2.5,
+                py: 1,
+              }}
+            >
+              Download
+            </Button>
+          </Tooltip>
 
-    <Tooltip title="New Transaction">
-      <Button
-        variant="outlined"
-        startIcon={<AddCircle />}
-        onClick={() => setModalOpen(true)}
-        sx={{
-          background: "linear-gradient(90deg, #2563eb, #1d4ed8)",
-          color: "white",
-          textTransform: "none",
-          fontWeight: 600,
-          borderRadius: "12px",
-          px: 2.8,
-          py: 1.2,
-          "&:hover": { background: "linear-gradient(90deg, #1e40af, #1d4ed8)" },
-          transition: "all 0.2s ease-in-out",
-        }}
-      >
-        New Transaction
-      </Button>
-    </Tooltip>
-  </div>
-</div>
+          <Tooltip title="New Transaction">
+            <Button
+              variant="outlined"
+              startIcon={<AddCircle />}
+              onClick={() => setModalOpen(true)}
+              sx={{
+                background: "linear-gradient(90deg, #2563eb, #1d4ed8)",
+                color: "white",
+                textTransform: "none",
+                fontWeight: 600,
+                borderRadius: "12px",
+                px: 2.8,
+                py: 1.2,
+                "&:hover": {
+                  background: "linear-gradient(90deg, #1e40af, #1d4ed8)",
+                },
+                transition: "all 0.2s ease-in-out",
+              }}
+            >
+              New Transaction
+            </Button>
+          </Tooltip>
+        </div>
+      </div>
 
-
-      <LogsTable rows={enableFilter ? filteredLogs : logs} type={endpoint} loading={loading} />
+      <LogsTable
+        rows={enableFilter ? filteredLogs : logs}
+        type={endpoint}
+        loading={loading}
+      />
 
       <TransactionModal
         open={modalOpen}

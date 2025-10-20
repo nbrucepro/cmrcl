@@ -16,13 +16,24 @@ import {
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
 import { Add, Delete } from "@mui/icons-material";
+import { useGetCategoriesQuery } from "@/state/api";
 import { v4 } from "uuid";
-import { designOptions, mattressOptions, mattressHeights, categoryAttributes, categoryIdMap } from "../../../../lib/DoorConfig"
+import {
+  designOptions,
+  mattressOptions,
+  mattressHeights,
+  categoryAttributes,
+  categoryIdMap,
+  useCategoryMap,
+} from "../../../../lib/DoorConfig";
 
 const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   // inside the component
   const [loading, setLoading] = useState(false);
   const [otherType, setOtherType] = useState(""); // new
+
+  const { data: categories = [], isLoading } = useGetCategoriesQuery();
+  const { categoryMap, reverseCategoryMap, isLoading: categoryLoading } = useCategoryMap();
 
   const [formData, setFormData] = useState({
     productId: v4(),
@@ -106,28 +117,20 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
       if (variant.sellingPrice <= 0)
         newErrors[`variant_sellingPrice_${vIndex}`] =
           "Selling price must be greater than 0";
-      // if (formData.categoryId === "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc") {
-      //   const requiredNames = ["Width", "Length"];
-
-      //   requiredNames.forEach((reqName) => {
-      //     const attr = variant.attributes.find((a) => a.name === reqName);
-      //     if (!attr)
-      //       newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
-      //     else if (attr.value === "" || parseFloat(attr.value) <= 0)
-      //       newErrors[
-      //         `attr_${reqName}_${vIndex}`
-      //       ] = `${reqName} must be greater than 0`;
-      //   });
-      // }
-      const requiredAttrs = categoryAttributes[formData.categoryId]?.map(a => a.name) || [];
-requiredAttrs.forEach((reqName) => {
-  const attr = variant.attributes.find((a) => a.name === reqName);
-  if (!attr)
-    newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
-  else if (attr.value === "" || (parseFloat(attr.value) <= 0 && !isNaN(attr.value)))
-    newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} must be filled correctly`;
-});
-
+      const requiredAttrs =
+        categoryAttributes[formData.categoryId]?.map((a) => a.name) || [];
+      requiredAttrs.forEach((reqName) => {
+        const attr = variant.attributes.find((a) => a.name === reqName);
+        if (!attr)
+          newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
+        else if (
+          attr.value === "" ||
+          (parseFloat(attr.value) <= 0 && !isNaN(attr.value))
+        )
+          newErrors[
+            `attr_${reqName}_${vIndex}`
+          ] = `${reqName} must be filled correctly`;
+      });
     });
 
     setErrors(newErrors);
@@ -152,8 +155,9 @@ requiredAttrs.forEach((reqName) => {
       });
     }
     if (name === "categoryId") {
-      if (value === "b52d030f-1309-4099-bc85-b3d040fb9806") {
-        // Lock → no dimensions
+      const selectedCategory = categories.find((cat) => cat.categoryId === value);
+      const categoryName = selectedCategory?.name?.toLowerCase();
+      if (categoryName === "lock") {
         setVariants([
           {
             sku: "",
@@ -164,7 +168,6 @@ requiredAttrs.forEach((reqName) => {
           },
         ]);
       } else {
-        // All other categories → show dimensions
         setVariants([
           {
             sku: "",
@@ -179,41 +182,45 @@ requiredAttrs.forEach((reqName) => {
         ]);
       }
     }
-    
   };
+  const getCategoryNameById = (id) => {
+    const category = categories.find((cat) => cat.categoryId === id);
+    return category ? category.name.toLowerCase() : "";
+  };
+
   const handleDesignChange = (e) => {
     const { value } = e.target;
     handleChange(e); // keep formData updated
-  
+
     if (!formData.categoryId) return;
-  
-    // ✅ for Malaysian / Melamine / ZRK doors
-    if (["malaysian", "melamine", "zrk"].includes(formData.categoryId)) {
-      const sizeOptions = designOptions[formData.categoryId][value] || [];
-  
-      const extraAttrs = categoryAttributes[formData.categoryId] || [];
-  
-      // Create a single variant with selectable size
+
+    const categoryName = getCategoryNameById(formData.categoryId);
+
+    // ✅ Malaysian / Melamine / ZRK doors
+    if (["malaysian", "melamine", "zrk"].includes(categoryName)) {
+      const sizeOptions = designOptions[categoryName]?.[value] || [];
+      const extraAttrs = categoryAttributes[categoryName] || [];
+
       setVariants([
         {
-          sku: ``, // initially design only
+          sku: ``,
           purchasePrice: 0,
           sellingPrice: 0,
           stockQuantity: 0,
           attributes: [
             { name: "Design", value },
-            { name: "Size", value: "" }, // user will select this
+            { name: "Size", value: "" },
             ...extraAttrs
               .filter((a) => !["Design", "Size"].includes(a.name))
               .map((a) => ({ name: a.name, value: a.defaultValue || "" })),
           ],
-          sizeOptions, // store possible sizes for this design
+          sizeOptions,
         },
       ]);
     }
-  
-    // ✅ Mattress case
-    else if (formData.categoryId === "mattress") {
+
+    // ✅ Mattress
+    else if (categoryName === "mattress") {
       const extraAttrs = categoryAttributes["mattress"] || [];
       setVariants([
         {
@@ -224,18 +231,21 @@ requiredAttrs.forEach((reqName) => {
           attributes: [
             { name: "Type", value },
             { name: "Height", value: mattressHeights[0] || "" },
-            ...extraAttrs.map((a) => ({ name: a.name, value: a.defaultValue || "" })),
+            ...extraAttrs.map((a) => ({
+              name: a.name,
+              value: a.defaultValue || "",
+            })),
           ],
         },
       ]);
     }
-  
+
     // ✅ Lock / Others
     else {
-      const extraAttrs = categoryAttributes[formData.categoryId] || [];
+      const extraAttrs = categoryAttributes[categoryName] || [];
       setVariants([
         {
-          sku: '',
+          sku: "",
           purchasePrice: 0,
           sellingPrice: 0,
           stockQuantity: 0,
@@ -247,7 +257,6 @@ requiredAttrs.forEach((reqName) => {
       ]);
     }
   };
-  
 
   const handleVariantChange = (index, e) => {
     const { name, value } = e.target;
@@ -322,7 +331,9 @@ requiredAttrs.forEach((reqName) => {
     if (!validateForm()) return;
     const finalFormData = {
       ...formData,
-      categoryId: categoryIdMap[formData.categoryId] || formData.categoryId,
+      // categoryId: categoryIdMap[formData.categoryId] || formData.categoryId,
+      categoryId: categoryMap[formData.categoryId?.toLowerCase()] || formData.categoryId,
+
       name: formData.name === "Other" ? otherType : formData.name,
     };
 
@@ -345,277 +356,316 @@ requiredAttrs.forEach((reqName) => {
       onClose={handleClose}
       fullWidth
       maxWidth="md"
-      sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 0,bgcolor: "#fff" } }}
+      sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 0, bgcolor: "#fff" } }}
     >
-      <DialogTitle variant="h6" textAlign="center" sx={{ fontWeight: 600,textAlign: "center",  fontWeight: 700,fontSize: "1.25rem",py: 2.5,color: "#111827",bgcolor: "#ffffff", borderBottom: "1px solid #e5e7eb", }}>
+      <DialogTitle
+        variant="h6"
+        textAlign="center"
+        sx={{
+          fontWeight: 600,
+          textAlign: "center",
+          fontWeight: 700,
+          fontSize: "1.25rem",
+          py: 2.5,
+          color: "#111827",
+          bgcolor: "#ffffff",
+          borderBottom: "1px solid #e5e7eb",
+        }}
+      >
         Create New Product
       </DialogTitle>
 
       <Divider />
 
       <DialogContent sx={{ p: 1 }}>
-        <Box  component="form" onSubmit={handleSubmit} >
-        <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        mb: 3,
-        borderRadius: 2,
-        border: "1px solid #e5e7eb",
-        bgcolor: "#ffffff",
-      }}
-    >
-      <Typography
-        variant="h6"
-        sx={{ fontWeight: 600, mb: 2, color: "#374151" }}
-      >
-        Product Information
-      </Typography>
-      <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2 }}>
-          <Grid container spacing={{ xs: 3, sm: 3, md: 4 }}>
-              {/* PRODUCT DETAILS */}
-              <Grid item xs={12} sm={6} md={6}>
-                <TextField
-                  select
-                  fullWidth
-                  label="Select Category"
-                  name="categoryId"
-                  value={formData.categoryId || ""}
-                  onChange={handleChange}
-                  error={!!errors.categoryId}
-                  helperText={errors.categoryId}
-                  SelectProps={{ native: true }}
-                  required
-                >
-                  <option key="" value="Select Category">
-                    Select Category
-                  </option>
+        <Box component="form" onSubmit={handleSubmit}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: 2,
+              border: "1px solid #e5e7eb",
+              bgcolor: "#ffffff",
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, mb: 2, color: "#374151" }}
+            >
+              Product Information
+            </Typography>
+            <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2 }}>
+              <Grid container spacing={{ xs: 3, sm: 3, md: 4 }}>
+                {/* PRODUCT DETAILS */}
+                <Grid item xs={12} sm={6} md={6}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Select Category"
+                    name="categoryId"
+                    value={formData.categoryId || ""}
+                    onChange={handleChange}
+                    error={!!errors.categoryId}
+                    helperText={errors.categoryId}
+                    SelectProps={{ native: true }}
+                    required
+                  >
+                    <option key="" value="Select Category">
+                      Select Category
+                    </option>
+                    {!isLoading &&
+                      categories.map((category) => (
+                        <option
+                          key={category.categoryId}
+                          value={category.categoryId}
+                        >
+                          {category.name.charAt(0).toUpperCase() +
+                            category.name.slice(1)}
+                        </option>
+                      ))}
+                  </TextField>
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    select
+                    fullWidth
+                    label="Select Design"
+                    name="name"
+                    value={formData.name}
+                    error={!!errors.name}
+                    helperText={errors.name}
+                    onChange={(e) => {
+                      handleDesignChange(e);
+                      if (e.target.value !== "Other") setOtherType("");
+                    }}
+                    SelectProps={{ native: true }}
+                  >
+                    <option key="Select Type" value="Select Design">
+                      Select Design
+                    </option>
 
- <option value="malaysian">Malaysian Door</option>
- <option value="melamine">Melamine Door</option>
- <option value="zrk">ZRK Door</option>
- <option value="4f6e9c17-2a92-4694-a689-ab2fdeb887c6">
-                    Mattress
-  </option>
- <option value="b52d030f-1309-4099-bc85-b3d040fb9806">
-                    Lock
-                  </option>
-                </TextField>
-              </Grid>
-              <Grid item xs={12} sm={6} md={3} >
-                <TextField
-                  select
-                  fullWidth
-                  label={`Select Design`}
-                  name="name"
-                  value={formData.name}
-                  error={!!errors.name}
-                  helperText={errors.name}
-                  onChange={(e) => {
-                    // handleChange(e); // existing
-                    handleDesignChange(e); 
-                    if (e.target.value !== "Other") setOtherType(""); // reset if not other
-                  }}
-                  SelectProps={{ native: true }}
-                >
-                  <option key="Select Type" value="Select Design">
-                    Select Design 
-                  </option>
-                  {formData.categoryId ===
-                  "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc"
-                    ? [...doorTypes].map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))
-                    : formData.categoryId ===
-                      "b52d030f-1309-4099-bc85-b3d040fb9806"
-                    ? [...lockTypes].map((type) => (
-                        <option key={type} value={type}>
-                          {type}
-                        </option>
-                      ))
-                    : formData.categoryId === "4f6e9c17-2a92-4694-a689-ab2fdeb887c6"
-                    ? [...mattressOptions].map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
-                    ))
-                    : ["malaysian", "melamine", "zrk"].includes(formData.categoryId)
-                    ? [...Object.keys(designOptions[formData.categoryId])].map(
-                        (type) => (
+                    {(() => {
+                      const categoryName = getCategoryNameById(
+                        formData.categoryId
+                      );
+                      if (!categoryName) return null;
+
+                      if (
+                        ["malaysian", "melamine", "zrk"].includes(categoryName)
+                      ) {
+                        return Object.keys(
+                          designOptions[categoryName] || {}
+                        ).map((type) => (
                           <option key={type} value={type}>
                             {type}
                           </option>
-                        )
-                      )
-                    :null
-                    }
-                </TextField>
-                {formData.name === "Other" && (
-                  <Box mt={2}>
-                    <TextField
-                      fullWidth
-                      label="Specify Design Name"
-                      value={otherType}
-                      onChange={(e) => setOtherType(e.target.value)}
-                      error={!!errors.otherType}
-                      helperText={errors.otherType}
-                      required
-                    />
-                  </Box>
-                )}
-              </Grid>
-              <Grid item xs={12} sm={6} md={3} >
-                <TextField
-                  fullWidth
-                  label="Product Description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  multiline
-                  // minRows={3}
-                  // maxRows={6}
-                />
-              </Grid>
+                        ));
+                      }
 
-              <Grid className="hidden" item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Rating"
-                  type="number"
-                  name="rating"
-                  value={formData.rating}
-                  onChange={handleChange}
-                  inputProps={{ step: "0.1", min: "0", max: "5" }}
-                />
+                      if (categoryName === "mattress") {
+                        return mattressOptions.map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ));
+                      }
+
+                      if (categoryName === "lock") {
+                        return ["Handle lock"].map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ));
+                      }
+
+                      if (categoryName === "door") {
+                        return [
+                          "Single Door",
+                          "Double Door",
+                          "Sliding Door",
+                          "French Door",
+                        ].map((type) => (
+                          <option key={type} value={type}>
+                            {type}
+                          </option>
+                        ));
+                      }
+
+                      return null;
+                    })()}
+                  </TextField>
+
+                  {formData.name === "Other" && (
+                    <Box mt={2}>
+                      <TextField
+                        fullWidth
+                        label="Specify Design Name"
+                        value={otherType}
+                        onChange={(e) => setOtherType(e.target.value)}
+                        error={!!errors.otherType}
+                        helperText={errors.otherType}
+                        required
+                      />
+                    </Box>
+                  )}
+                </Grid>
+                <Grid item xs={12} sm={6} md={3}>
+                  <TextField
+                    fullWidth
+                    label="Product Description"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleChange}
+                    multiline
+                    // minRows={3}
+                    // maxRows={6}
+                  />
+                </Grid>
+
+                <Grid className="hidden" item xs={12} sm={6}>
+                  <TextField
+                    fullWidth
+                    label="Rating"
+                    type="number"
+                    name="rating"
+                    value={formData.rating}
+                    onChange={handleChange}
+                    inputProps={{ step: "0.1", min: "0", max: "5" }}
+                  />
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
+            </Box>
           </Paper>
 
           {/* Details SECTION */}
           <Paper
-      elevation={0}
-      sx={{
-        p: 3,
-        borderRadius: 2,
-        border: "1px solid #e5e7eb",
-        bgcolor: "#ffffff",
-         "& .MuiTextField-root": { width: "100%" },
-      }}
-    >
-      <Typography
-        variant="h6"
-        sx={{ fontWeight: 600, mb: 2, color: "#374151" }}
-      >
-        Design Details
-      </Typography>
-
-          {variants.map((variant, vIndex) => (
-            <Box
-              key={vIndex}
-              sx={{
-                mt: 2,
-                p: 0,
-                borderRadius: 2,
-                backgroundColor: "#fff",
-              }}
+            elevation={0}
+            sx={{
+              p: 3,
+              borderRadius: 2,
+              border: "1px solid #e5e7eb",
+              bgcolor: "#ffffff",
+              "& .MuiTextField-root": { width: "100%" },
+            }}
+          >
+            <Typography
+              variant="h6"
+              sx={{ fontWeight: 600, mb: 2, color: "#374151" }}
             >
-              <Grid container spacing={2}>
-                <Grid item xs={12} sm={6} md={3} >
-                  <TextField
-                    fullWidth
-                    label="SKU"
-                    name="sku"
-                    value={variant.sku}
-                    error={!!errors[`variant_sku_${vIndex}`]}
-                    helperText={errors[`variant_sku_${vIndex}`]}
-                    onChange={(e) => handleVariantChange(vIndex, e)}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3} >
-                  <TextField
-                    fullWidth
-                    label="Purchase Price"
-                    type="number"
-                    name="purchasePrice"
-                    value={variant.purchasePrice}
-                    error={!!errors[`variant_purchasePrice_${vIndex}`]}
-                    helperText={errors[`variant_purchasePrice_${vIndex}`]}
-                    onChange={(e) => handleVariantChange(vIndex, e)}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3} >
-                  <TextField
-                    fullWidth
-                    label="Selling Price"
-                    type="number"
-                    name="sellingPrice"
-                    value={variant.sellingPrice}
-                    error={!!errors[`variant_sellingPrice_${vIndex}`]}
-                    helperText={errors[`variant_sellingPrice_${vIndex}`]}
-                    onChange={(e) => handleVariantChange(vIndex, e)}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6} md={3} >
-                  <TextField
-                    fullWidth
-                    label="Stock Quantity"
-                    type="number"
-                    name="stockQuantity"
-                    value={variant.stockQuantity}
-                    error={!!errors[`variant_stockQuantity_${vIndex}`]}
-                    helperText={errors[`variant_stockQuantity_${vIndex}`]}
-                    onChange={(e) => handleVariantChange(vIndex, e)}
-                  />
-                </Grid>
-              </Grid>
+              Design Details
+            </Typography>
 
-              {/* ATTRIBUTES */}
-              {formData.categoryId && (
-  <Typography variant="h6"  sx={{ fontWeight: 600, my: 2, color: "#374151" }}>
-    {`Attributes `}
-  </Typography>
-)}
-<Grid container spacing={2} sx={{ mt: 2 }}>
-              {variant.attributes.map((attr, aIndex) => (
-               <Grid key={aIndex} item xs={12} sm={6} md={3} >
-               {attr.name === "Size" && variants[vIndex].sizeOptions ? (
-                 <TextField
-                   select
-                   fullWidth
-                   label="Select Size(inch)"
-                   name="value"
-                   value={attr.value}
-                   onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
-                   SelectProps={{ native: true }}
-                 >
-                   <option value="">Select Size</option>
-                   {variants[vIndex].sizeOptions.map((size) => (
-                     <option key={size} value={size}>
-                       {size}
-                     </option>
-                   ))}
-                 </TextField>
-               ) : (
-                 <TextField
-                   fullWidth
-                   label={`${attr.name} Value`}
-                   name="value"
-                   value={attr.value}
-                   error={!!errors[`attr_${attr.name}_${vIndex}`]}
-                   helperText={errors[`attr_${attr.name}_${vIndex}`]}
-                   onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
-                   disabled={attr.name == "design" && true}
-                 />
-               )}
-             </Grid>
-             
-              ))}
-              </Grid>
+            {variants.map((variant, vIndex) => (
+              <Box
+                key={vIndex}
+                sx={{
+                  mt: 2,
+                  p: 0,
+                  borderRadius: 2,
+                  backgroundColor: "#fff",
+                }}
+              >
+                <Grid container spacing={2}>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      label="SKU"
+                      name="sku"
+                      value={variant.sku}
+                      error={!!errors[`variant_sku_${vIndex}`]}
+                      helperText={errors[`variant_sku_${vIndex}`]}
+                      onChange={(e) => handleVariantChange(vIndex, e)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Purchase Price"
+                      type="number"
+                      name="purchasePrice"
+                      value={variant.purchasePrice}
+                      error={!!errors[`variant_purchasePrice_${vIndex}`]}
+                      helperText={errors[`variant_purchasePrice_${vIndex}`]}
+                      onChange={(e) => handleVariantChange(vIndex, e)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Selling Price"
+                      type="number"
+                      name="sellingPrice"
+                      value={variant.sellingPrice}
+                      error={!!errors[`variant_sellingPrice_${vIndex}`]}
+                      helperText={errors[`variant_sellingPrice_${vIndex}`]}
+                      onChange={(e) => handleVariantChange(vIndex, e)}
+                    />
+                  </Grid>
+                  <Grid item xs={12} sm={6} md={3}>
+                    <TextField
+                      fullWidth
+                      label="Stock Quantity"
+                      type="number"
+                      name="stockQuantity"
+                      value={variant.stockQuantity}
+                      error={!!errors[`variant_stockQuantity_${vIndex}`]}
+                      helperText={errors[`variant_stockQuantity_${vIndex}`]}
+                      onChange={(e) => handleVariantChange(vIndex, e)}
+                    />
+                  </Grid>
+                </Grid>
 
-              {/* <Button
+                {/* ATTRIBUTES */}
+                {formData.categoryId && (
+                  <Typography
+                    variant="h6"
+                    sx={{ fontWeight: 600, my: 2, color: "#374151" }}
+                  >
+                    {`Attributes `}
+                  </Typography>
+                )}
+                <Grid container spacing={2} sx={{ mt: 2 }}>
+                  {variant.attributes.map((attr, aIndex) => (
+                    <Grid key={aIndex} item xs={12} sm={6} md={3}>
+                      {attr.name === "Size" && variants[vIndex].sizeOptions ? (
+                        <TextField
+                          select
+                          fullWidth
+                          label="Select Size(inch)"
+                          name="value"
+                          value={attr.value}
+                          onChange={(e) =>
+                            handleAttributeChange(vIndex, aIndex, e)
+                          }
+                          SelectProps={{ native: true }}
+                        >
+                          <option value="">Select Size</option>
+                          {variants[vIndex].sizeOptions.map((size) => (
+                            <option key={size} value={size}>
+                              {size}
+                            </option>
+                          ))}
+                        </TextField>
+                      ) : (
+                        <TextField
+                          fullWidth
+                          label={`${attr.name} Value`}
+                          name="value"
+                          value={attr.value}
+                          error={!!errors[`attr_${attr.name}_${vIndex}`]}
+                          helperText={errors[`attr_${attr.name}_${vIndex}`]}
+                          onChange={(e) =>
+                            handleAttributeChange(vIndex, aIndex, e)
+                          }
+                          disabled={attr.name == "design" && true}
+                        />
+                      )}
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* <Button
                 startIcon={<Add />}
                 onClick={() => addAttribute(vIndex)}
                 sx={{ mt: 1 }}
@@ -623,8 +673,8 @@ requiredAttrs.forEach((reqName) => {
                 Add Attribute
               </Button> */}
 
-              <Divider sx={{ my: 2 }} />
-              {/* {variants?.length > 1 && (
+                <Divider sx={{ my: 2 }} />
+                {/* {variants?.length > 1 && (
                 <Button
                   variant="outlined"
                   color="error"
@@ -634,10 +684,10 @@ requiredAttrs.forEach((reqName) => {
                   Remove Variant
                 </Button>
               )} */}
-            </Box>
-          ))}
+              </Box>
+            ))}
 
-          {/* <Button
+            {/* <Button
             variant="contained"
             color="success"
             startIcon={<Add />}
@@ -650,20 +700,26 @@ requiredAttrs.forEach((reqName) => {
         </Box>
       </DialogContent>
 
-      <DialogActions   sx={{
-    p: 2.5,
-    bgcolor: "#ffffff",
-    borderTop: "1px solid #e5e7eb",
-    justifyContent: "space-between",
-  }} >
-        <Button onClick={handleClose}     sx={{
-      textTransform: "none",
-      borderRadius: 2,
-      px: 3,
-      color: "#374151",
-      borderColor: "#d1d5db",
-      "&:hover": { borderColor: "#9ca3af", bgcolor: "#f9fafb" },
-    }} variant="outlined">
+      <DialogActions
+        sx={{
+          p: 2.5,
+          bgcolor: "#ffffff",
+          borderTop: "1px solid #e5e7eb",
+          justifyContent: "space-between",
+        }}
+      >
+        <Button
+          onClick={handleClose}
+          sx={{
+            textTransform: "none",
+            borderRadius: 2,
+            px: 3,
+            color: "#374151",
+            borderColor: "#d1d5db",
+            "&:hover": { borderColor: "#9ca3af", bgcolor: "#f9fafb" },
+          }}
+          variant="outlined"
+        >
           Cancel
         </Button>
         <Button

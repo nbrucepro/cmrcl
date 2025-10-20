@@ -35,6 +35,7 @@ import {
   useGetProductsQuery,
   useUpdateProductMutation,
   useDeleteProductMutation,
+  useGetCategoriesQuery,
 } from "@/state/api";
 import CreateProductModal from "./CreateProductModal";
 import UpdateProductModal from "./UpdateProductModal";
@@ -45,14 +46,6 @@ import toast from "react-hot-toast";
 import ProductFilters from "@/app/(components)/inventory/ProductFilters";
 
 // Map category IDs to their readable names
-const categoryMap = {
-  "b52d030f-1309-4099-bc85-b3d040fb9806": "Lock",
-  "c25b2efb-ec58-4036-a38e-65e9c2c5bcfc": "Door",
-  "4f6e9c17-2a92-4694-a689-ab2fdeb887c6": "Mattress",
-  "2c81c619-b2b8-46ff-b4fb-aa729c54a491":"Melamine Door",
-  "aa7970bf-1fab-4f4a-9679-29e612391ddf":"Zrk Door",
-  "df248c6e-71b6-48bc-b3b5-c50f10ab39ca":"Malaysian Door",
-};
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -60,6 +53,7 @@ const Products = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { data: categories = [], isLoading: isCategoriesLoading } = useGetCategoriesQuery();
 
   const {
     data: products,
@@ -98,7 +92,7 @@ const Products = () => {
       toast.success(" Product created successfully!");
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || " Failed to create product");
+      toast.error(" Failed to create product");
     }
   };
 
@@ -131,7 +125,7 @@ const Products = () => {
       setDeleteId(null);
       refetch();
     } catch (err) {
-      toast.error(err?.data?.message || " Failed to delete product");
+      toast.error(" Failed to delete product");
     } finally {
       setIsDeleting(false);
     }
@@ -155,7 +149,7 @@ const Products = () => {
     ];
     const rows = filteredProducts.map((p) => [
       p.variants?.[0]?.sku || "—",
-      categoryMap[p.categoryId] || "—",
+      categories.find((c) => c.categoryId === p.categoryId)?.name || "—",
       p.name || "—",
       p.description || "—",
       p.variants?.[0]?.purchasePrice || "—",
@@ -226,7 +220,7 @@ const Products = () => {
       minWidth: 160,
       renderCell: (params) => (
         <Typography color="text.primary" noWrap>
-          {categoryMap[params?.row?.categoryId] || "—"}
+          {categories.find((c) => c.categoryId === params?.row?.categoryId)?.name || "—"}
         </Typography>
       ),
     },

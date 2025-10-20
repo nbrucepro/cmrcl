@@ -13,6 +13,7 @@ import {
   InputLabel,
 } from "@mui/material";
 import { Download, RestartAlt } from "@mui/icons-material";
+import { useGetCategoriesQuery } from "@/state/api";
 
 const ProductFilters = ({
   searchTerm,
@@ -30,6 +31,8 @@ const ProductFilters = ({
   onReset: () => void;
 }) => {
   const [downloadType, setDownloadType] = React.useState("excel");
+
+  const { data: categories = [], isLoading } = useGetCategoriesQuery();
 
   return (
     <Paper
@@ -49,11 +52,7 @@ const ProductFilters = ({
         alignItems={{ xs: "stretch", md: "center" }}
       >
         {/* Left side */}
-        <Stack
-          direction={{ xs: "column", sm: "row" }}
-          spacing={2}
-          flex={1}
-        >
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flex={1}>
           <TextField
             label="Search products"
             size="small"
@@ -70,15 +69,18 @@ const ProductFilters = ({
             onChange={(e) => setCategoryFilter(e.target.value)}
           >
             <MenuItem value="all">All Categories</MenuItem>
-            <MenuItem value="2c81c619-b2b8-46ff-b4fb-aa729c54a491">Melamine</MenuItem>
-            <MenuItem value="aa7970bf-1fab-4f4a-9679-29e612391ddf">Zrk</MenuItem>
-            <MenuItem value="df248c6e-71b6-48bc-b3b5-c50f10ab39ca">Malaysian</MenuItem>
-            <MenuItem value="c25b2efb-ec58-4036-a38e-65e9c2c5bcfc">Door</MenuItem>
-            <MenuItem value="4f6e9c17-2a92-4694-a689-ab2fdeb887c6">Mattress</MenuItem>
-            <MenuItem value="b52d030f-1309-4099-bc85-b3d040fb9806">Lock</MenuItem>
+            {isLoading && <MenuItem disabled>Loading...</MenuItem>}
+
+            {!isLoading &&
+              categories.map((category) => (
+                <MenuItem key={category.categoryId} value={category.categoryId}>
+                  {category.name.charAt(0).toUpperCase() +
+                    category.name.slice(1)}
+                </MenuItem>
+              ))}
           </TextField>
         </Stack>
-  
+
         {/* Divider for medium screens and above */}
         <Divider
           orientation="vertical"
@@ -89,7 +91,7 @@ const ProductFilters = ({
             borderColor: "divider",
           }}
         />
-  
+
         {/* Right side */}
         <Stack
           direction={{ xs: "column", sm: "row" }}
@@ -109,7 +111,7 @@ const ProductFilters = ({
               <MenuItem value="csv">CSV</MenuItem>
             </Select>
           </FormControl>
-  
+
           <Button
             variant="contained"
             color="primary"
@@ -124,7 +126,7 @@ const ProductFilters = ({
           >
             Download
           </Button>
-  
+
           <Tooltip title="Reset Filters">
             <Button
               variant="outlined"
@@ -145,7 +147,6 @@ const ProductFilters = ({
       </Stack>
     </Paper>
   );
-  
 };
 
 export default ProductFilters;
