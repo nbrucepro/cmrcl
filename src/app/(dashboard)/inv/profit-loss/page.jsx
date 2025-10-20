@@ -39,7 +39,6 @@ export default function ProfitLossPage() {
         {
           params: { startDate, endDate },
           headers: { Authorization: `Bearer ${token}` },
-          withCredentials: true,
         }
       );
 
