@@ -6,7 +6,7 @@ export interface Product {
   price: number;
   rating?: number;
   stockQuantity: number;
-  variants:[]
+  variants: [];
 }
 
 export interface NewProduct {
@@ -60,23 +60,46 @@ export interface Category {
   categoryId: string;
   name: string;
 }
+export interface Design {
+  designId: string;
+  name: string;
+  categoryId: string;
+  adminId: string;
+}
 
+export interface Attribute {
+  attributeId: string;
+  name: string;
+  categoryId: string;
+}
 
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ 
+  baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL,
     prepareHeaders: (headers) => {
-      const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+      const token =
+        typeof window !== "undefined" ? localStorage.getItem("token") : null;
       if (token) {
         headers.set("authorization", `Bearer ${token}`);
       }
       return headers;
-    }
+    },
   }),
   reducerPath: "api",
-  tagTypes: ["DashboardMetrics", "Products", "Users", "Expenses","Categories"],
+  tagTypes: [
+    "DashboardMetrics",
+    "Products",
+    "Users",
+    "Expenses",
+    "Categories",
+    "Designs",
+    "Attributes",
+  ],
   endpoints: (build) => ({
-    getDashboardMetrics: build.query<DashboardMetrics, {month:number;year:number}>({
+    getDashboardMetrics: build.query<
+      DashboardMetrics,
+      { month: number; year: number }
+    >({
       // query: () => "/dashboard",
       query: ({ month, year }) => ({
         url: `/dashboard/?month=${month}&year=${year}`,
@@ -124,9 +147,91 @@ export const api = createApi({
     }),
     getCategories: build.query<Category[], void>({
       query: () => "/api/categories",
-      providesTags: ["Categories"], 
+      providesTags: ["Categories"],
     }),
-    
+    createCategory: build.mutation<Category, { name: string }>({
+      query: (body) => ({
+        url: "/api/categories",
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Categories"],
+    }),
+    updateCategory: build.mutation<Category, { id: string; name: string }>({
+      query: ({ id, name }) => ({
+        url: `/api/categories/${id}`,
+        method: "PUT",
+        body: { name },
+      }),
+      invalidatesTags: ["Categories"],
+    }),
+    deleteCategory: build.mutation<void, string>({
+      query: (id) => ({
+        url: `/api/categories/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Categories"],
+    }),
+    // ===== Designs =====
+    getDesignsByCategory: build.query<Design[], string>({
+      query: (categoryId) => `/api/designs/${categoryId}`,
+      providesTags: ["Designs"],
+    }),
+    createDesign: build.mutation<Design, Partial<Design>>({
+      query: (body) => ({
+        url: `/api/designs`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Designs"],
+    }),
+    updateDesign: build.mutation<Design, Partial<Design> & { id: string }>({
+      query: ({ id, ...body }) => ({
+        url: `/api/designs/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Designs"],
+    }),
+    deleteDesign: build.mutation<void, string>({
+      query: (id) => ({
+        url: `/designs/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Designs"],
+    }),
+
+    // ===== Attributes =====
+    getAttributesByCategory: build.query<Attribute[], string>({
+      query: (categoryId) => `/category-attributes/${categoryId}`,
+      providesTags: ["Attributes"],
+    }),
+    createAttribute: build.mutation<Attribute, Partial<Attribute>>({
+      query: (body) => ({
+        url: `/category-attributes`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Attributes"],
+    }),
+    updateAttribute: build.mutation<
+      Attribute,
+      Partial<Attribute> & { id: string }
+    >({
+      query: ({ id, ...body }) => ({
+        url: `/category-attributes/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Attributes"],
+    }),
+    deleteAttribute: build.mutation<void, string>({
+      query: (id) => ({
+        url: `/category-attributes/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Attributes"],
+    }),
   }),
 });
 export const {
@@ -137,5 +242,10 @@ export const {
   useDeleteProductMutation,
   useGetUsersQuery,
   useGetExpensesByCategoryQuery,
-  useGetCategoriesQuery
+  useGetCategoriesQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+  useGetDesignsByCategoryQuery,
+  useGetAttributesByCategoryQuery,
 } = api;

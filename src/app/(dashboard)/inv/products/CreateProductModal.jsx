@@ -15,8 +15,11 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid";
-import { Add, Delete } from "@mui/icons-material";
-import { useGetCategoriesQuery } from "@/state/api";
+import {
+  useGetCategoriesQuery,
+  useGetDesignsByCategoryQuery,
+  useGetAttributesByCategoryQuery,
+} from "@/state/api";
 import { v4 } from "uuid";
 import {
   designOptions,
@@ -33,6 +36,16 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   const [otherType, setOtherType] = useState(""); // new
 
   const { data: categories = [], isLoading } = useGetCategoriesQuery();
+  const { data: designs = [], isLoading: designsLoading } =
+  useGetDesignsByCategoryQuery(formData.categoryId, {
+    skip: !formData.categoryId,
+  });
+
+const { data: attributes = [], isLoading: attributesLoading } =
+  useGetAttributesByCategoryQuery(formData.categoryId, {
+    skip: !formData.categoryId,
+  });
+
   const { categoryMap, reverseCategoryMap, isLoading: categoryLoading } = useCategoryMap();
 
   const [formData, setFormData] = useState({
@@ -193,6 +206,22 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     handleChange(e); // keep formData updated
 
     if (!formData.categoryId) return;
+    const dynamicAttributes = attributes.map((attr) => ({
+      name: attr.name,
+      value: "",
+    }));
+    setVariants([
+      {
+        sku: "",
+        purchasePrice: 0,
+        sellingPrice: 0,
+        stockQuantity: 0,
+        attributes: [
+          { name: "Design", value },
+          ...dynamicAttributes.filter((a) => a.name !== "Design"),
+        ],
+      },
+    ]);
 
     const categoryName = getCategoryNameById(formData.categoryId);
 
@@ -427,6 +456,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                   </TextField>
                 </Grid>
                 <Grid item xs={12} sm={6} md={3}>
+
                   <TextField
                     select
                     fullWidth
@@ -444,8 +474,15 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     <option key="Select Type" value="Select Design">
                       Select Design
                     </option>
+                    {!designsLoading &&
+  designs.map((design) => (
+    <option key={design.designId} value={design.name}>
+      {design.name}
+    </option>
+  ))}
 
-                    {(() => {
+
+                    {/* {(() => {
                       const categoryName = getCategoryNameById(
                         formData.categoryId
                       );
@@ -493,7 +530,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                       }
 
                       return null;
-                    })()}
+                    })()} */}
                   </TextField>
 
                   {formData.name === "Other" && (

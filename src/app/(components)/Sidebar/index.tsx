@@ -14,6 +14,7 @@ import {
   Package,
   ShoppingCart,
   Receipt,
+  Tags,
 } from "lucide-react";
 
 import Image from "next/image";
@@ -271,12 +272,12 @@ const Sidebar = () => {
           setActiveParent={setActiveParent}
         >
         </SidebarLink> */}
-        {/* <SidebarLink
+        <SidebarLink
           href="/inv/categories"
           icon={Tags}
           label="Categories"
           isCollapsed={isSidebarCollapsed}
-        /> */}
+        />
         {/* <SidebarLink
           href="/inv/users"
           icon={User}
