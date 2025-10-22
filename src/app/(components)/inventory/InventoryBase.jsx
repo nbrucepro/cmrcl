@@ -165,6 +165,12 @@ export default function InventoryBase({
     saveAs(blob, `${endpoint}_logs_${Date.now()}.csv`);
     toast.success("Download started");
   };
+  useEffect(() => {
+    if (fromDate && toDate) {
+      handleFilter();
+    }
+  }, [fromDate, toDate]);
+  
 
   if (isLoading || loading) {
     return (
@@ -205,13 +211,13 @@ export default function InventoryBase({
   }
 
   return (
-    <div className="flex flex-col px-3 sm:px-6 lg:px-10 pb-6 w-full overflow-x-hidden">
+    <div className="flex flex-col px-3 sm:px-6 lg:px-2 pb-6 w-full overflow-x-hidden">
       <Header name={`${title}`} />
       {/* CONTROL BAR */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 my-6 bg-white/70 backdrop-blur-md shadow-sm p-4 sm:p-6 rounded-2xl border border-gray-100 w-full">
-         {/* Date Filters */}
-         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-end gap-3 w-full">
-          <TextField
+        {/* Date Filters */}
+        <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
+           <TextField
             label="From"
             type="date"
             value={fromDate}
@@ -230,27 +236,6 @@ export default function InventoryBase({
             sx={{ minWidth: 160 }}
           />
 
-          <Tooltip title="Apply Filter">
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<FilterAlt />}
-              onClick={handleFilter}
-              sx={{
-                textTransform: "none",
-                borderRadius: "12px",
-                width: { xs: "100%", sm: "auto" },
-                minWidth: { xs: "100%", sm: 120 },
-                borderRadius: "12px",
-                textTransform: "none",
-                px: 2.5,
-                py: 1,
-              }}
-            >
-              Filter
-            </Button>
-          </Tooltip>
-
           <Tooltip title="Reset Filters">
             <Button
               variant="outlined"
@@ -264,8 +249,11 @@ export default function InventoryBase({
                 minWidth: { xs: "100%", sm: 120 },
                 borderRadius: "12px",
                 textTransform: "none",
-                px: 2.5,
+                borderRadius: "12px",
+                px: 2,
                 py: 1,
+                minWidth: 120,
+                whiteSpace: "nowrap",
               }}
             >
               Reset Filters
@@ -274,8 +262,8 @@ export default function InventoryBase({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:justify-end w-full sm:w-auto">
-          <Tooltip title="Download CSV">
+        <div className="flex flex-col sm:flex-row flex-wrap justify-end items-stretch gap-3 w-full lg:w-auto">
+            <Tooltip title="Download CSV">
             <Button
               variant="outlined"
               color="success"
@@ -284,12 +272,10 @@ export default function InventoryBase({
               sx={{
                 textTransform: "none",
                 borderRadius: "12px",
-                width: { xs: "100%", sm: "auto" },
-                minWidth: { xs: "100%", sm: 120 },
-                borderRadius: "12px",
-                textTransform: "none",
-                px: 2.5,
+                px: 2,
                 py: 1,
+                minWidth: 120,
+                whiteSpace: "nowrap",
               }}
             >
               Download
@@ -307,12 +293,10 @@ export default function InventoryBase({
                 textTransform: "none",
                 fontWeight: 600,
                 borderRadius: "12px",
-                width: { xs: "100%", sm: "auto" },
-                minWidth: { xs: "100%", sm: 120 },
-                borderRadius: "12px",
-                textTransform: "none",
-                px: 2.5,
+                px: 2,
                 py: 1,
+                minWidth: 120,
+                whiteSpace: "nowrap",
                 "&:hover": {
                   background: "linear-gradient(90deg, #1e40af, #1d4ed8)",
                 },

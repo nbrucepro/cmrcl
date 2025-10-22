@@ -154,10 +154,10 @@ export default function ReceivablePage() {
         const variant = p.variants?.[0];
         const size = variant?.attributes?.find((a) => a.name === "Size")?.value;
         const category = reverseCategoryMap[p?.categoryId];
-        const fnm = category.charAt(0).toUpperCase() + category.slice(1);
+        const fnm = category?.charAt(0)?.toUpperCase() + category.slice(1);
         return (
           <Stack spacing={0.3}>
-            <Typography fontWeight="bold">
+            <Typography fontWeight="normal">
               {p.name} {`"${size}`}
             </Typography>
             <Typography variant="body2" color="text.secondary">

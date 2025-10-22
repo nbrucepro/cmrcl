@@ -322,7 +322,7 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
               onChange={handleDesignChange}
               SelectProps={{ native: true }}
             >
-              <option value="Select Design">Select Design</option>
+              <option value="Select Design">Select Design{categoryMap["mattress"]}</option>
 
               {[MALAYSIAN, MELAMINE, ZRK, MATTRESS, LOCK].includes(
                 formData.categoryId
