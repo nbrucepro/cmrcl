@@ -224,7 +224,7 @@ export default function InventoryBase({
             onChange={(e) => setFromDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             size="small"
-            sx={{ minWidth: 160 }}
+            sx={{minWidth: { xs: "100%", sm: 120 }}}
           />
           <TextField
             label="To"
@@ -233,7 +233,7 @@ export default function InventoryBase({
             onChange={(e) => setToDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             size="small"
-            sx={{ minWidth: 160 }}
+            sx={{minWidth: { xs: "100%", sm: 120 }}}
           />
 
           <Tooltip title="Reset Filters">

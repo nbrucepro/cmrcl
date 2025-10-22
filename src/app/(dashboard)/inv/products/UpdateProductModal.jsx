@@ -268,25 +268,32 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
     ? Object.keys(designOptions[designKey] || {})
     : [];
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md"
-    PaperProps={{
-      sx: {
-        width: "100%",
-        maxWidth: "1000px",
-        m: 2,
-        p:2 
-      },
-    }}>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="md"
+      PaperProps={{
+        sx: {
+          width: "100%",
+          maxWidth: "1000px",
+          m: 2,
+          p: 4,
+        },
+      }}
+    >
       <DialogTitle sx={{ fontWeight: 600 }}>Update Product</DialogTitle>
       <Divider />
-      <DialogContent   sx={{
-    mt: 2,
-    width: "100%",
-    p: 1,
-    "& .MuiGrid-container": { width: "100%", m: 0 },
-    "& .MuiGrid-item": { display: "flex" },
-    "& .MuiTextField-root": { flex: 1 },
-  }}>
+      <DialogContent
+        sx={{
+          mt: 2,
+          width: "100%",
+          p: 2,
+          "& .MuiGrid-container": { width: "100%", m: 0 },
+          "& .MuiGrid-item": { display: "flex" },
+          "& .MuiTextField-root": { flex: 1 },
+        }}
+      >
         {/* Basic Info */}
         <Grid container spacing={2}>
           <Grid item xs={12} sm={6} md={4}>
@@ -322,11 +329,9 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
               onChange={handleDesignChange}
               SelectProps={{ native: true }}
             >
-              <option value="Select Design">Select Design{categoryMap["mattress"]}</option>
+              <option value="Select Design">Select Design</option>
 
-              {[MALAYSIAN, MELAMINE, ZRK, MATTRESS, LOCK].includes(
-                formData.categoryId
-              )
+              {[MALAYSIAN, MELAMINE, ZRK, LOCK].includes(formData.categoryId)
                 ? Object.keys(
                     designOptions[reverseCategoryMap[formData.categoryId]] || {}
                   ).map((type) => (
@@ -375,7 +380,6 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
           >
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-
                 <TextField
                   fullWidth
                   label="SKU"
@@ -385,7 +389,6 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-
                 <TextField
                   fullWidth
                   label="Purchase Price"
@@ -396,7 +399,6 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-
                 <TextField
                   fullWidth
                   label="Selling Price"
@@ -407,7 +409,6 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
                 />
               </Grid>
               <Grid item xs={12} sm={6} md={4} lg={3}>
-
                 <TextField
                   fullWidth
                   label="Stock Quantity"
