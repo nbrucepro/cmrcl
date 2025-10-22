@@ -33,7 +33,11 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   const [otherType, setOtherType] = useState(""); // new
 
   const { data: categories = [], isLoading } = useGetCategoriesQuery();
-  const { categoryMap, reverseCategoryMap, isLoading: categoryLoading } = useCategoryMap();
+  const {
+    categoryMap,
+    reverseCategoryMap,
+    isLoading: categoryLoading,
+  } = useCategoryMap();
 
   const [formData, setFormData] = useState({
     productId: v4(),
@@ -155,7 +159,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
       });
     }
     if (name === "categoryId") {
-      const selectedCategory = categories.find((cat) => cat.categoryId === value);
+      const selectedCategory = categories.find(
+        (cat) => cat.categoryId === value
+      );
       const categoryName = selectedCategory?.name?.toLowerCase();
       if (categoryName === "lock") {
         setVariants([
@@ -332,7 +338,8 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     const finalFormData = {
       ...formData,
       // categoryId: categoryIdMap[formData.categoryId] || formData.categoryId,
-      categoryId: categoryMap[formData.categoryId?.toLowerCase()] || formData.categoryId,
+      categoryId:
+        categoryMap[formData.categoryId?.toLowerCase()] || formData.categoryId,
 
       name: formData.name === "Other" ? otherType : formData.name,
     };
@@ -354,9 +361,18 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     <Dialog
       open={isOpen}
       onClose={handleClose}
-      fullWidth
       maxWidth="md"
-      sx={{ "& .MuiDialog-paper": { borderRadius: 3, p: 0, bgcolor: "#fff" } }}
+      sx={{
+        "& .MuiDialog-paper": {
+          borderRadius: 3,
+          p: 0,
+          bgcolor: "#fff",
+          width: "100%",
+          
+          maxWidth: "1000px",
+          // maxWidth: { xs: "95%", sm: "90%", md: "60%" },
+        },
+      }}
     >
       <DialogTitle
         variant="h6"
@@ -377,14 +393,21 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
 
       <Divider />
 
-      <DialogContent sx={{ p: 1 }}>
-        <Box component="form" onSubmit={handleSubmit}>
+      <DialogContent sx={{ p: 1,overflowY: "auto" }}>
+        <Box
+          component="form"
+          onSubmit={handleSubmit}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: { xs: 2.5, sm: 3 },
+          }}
+        >
           <Paper
             elevation={0}
             sx={{
-              p: 3,
-              mb: 3,
-              borderRadius: 2,
+              p: { xs: 2, sm: 3 },
+              borderRadius: 3,
               border: "1px solid #e5e7eb",
               bgcolor: "#ffffff",
             }}
@@ -396,9 +419,9 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
               Product Information
             </Typography>
             <Box display="flex" flexDirection="column" gap={{ xs: 1.5, sm: 2 }}>
-              <Grid container spacing={{ xs: 3, sm: 3, md: 4 }}>
+              <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
                 {/* PRODUCT DETAILS */}
-                <Grid item xs={12} sm={6} md={6}>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
                   <TextField
                     select
                     fullWidth
@@ -426,7 +449,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                       ))}
                   </TextField>
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
                   <TextField
                     select
                     fullWidth
@@ -510,7 +533,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     </Box>
                   )}
                 </Grid>
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid item xs={12} sm={12} md={6} lg={4}>
                   <TextField
                     fullWidth
                     label="Product Description"
@@ -520,18 +543,6 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     multiline
                     // minRows={3}
                     // maxRows={6}
-                  />
-                </Grid>
-
-                <Grid className="hidden" item xs={12} sm={6}>
-                  <TextField
-                    fullWidth
-                    label="Rating"
-                    type="number"
-                    name="rating"
-                    value={formData.rating}
-                    onChange={handleChange}
-                    inputProps={{ step: "0.1", min: "0", max: "5" }}
                   />
                 </Grid>
               </Grid>
@@ -566,8 +577,8 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                   backgroundColor: "#fff",
                 }}
               >
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                <Grid container spacing={{ xs: 2, sm: 2.5, md: 3 }}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <TextField
                       fullWidth
                       label="SKU"
@@ -578,7 +589,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                       onChange={(e) => handleVariantChange(vIndex, e)}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <TextField
                       fullWidth
                       label="Purchase Price"
@@ -590,7 +601,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                       onChange={(e) => handleVariantChange(vIndex, e)}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <TextField
                       fullWidth
                       label="Selling Price"
@@ -602,7 +613,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                       onChange={(e) => handleVariantChange(vIndex, e)}
                     />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item xs={12} sm={6} md={4}>
                     <TextField
                       fullWidth
                       label="Stock Quantity"
@@ -625,9 +636,16 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
                     {`Attributes `}
                   </Typography>
                 )}
-                <Grid container spacing={2} sx={{ mt: 2 }}>
+                <Grid
+                  container
+                  spacing={{ xs: 1.5, sm: 2, md: 2.5 }}
+                  sx={{
+                    mt: { xs: 1, sm: 1.5 },
+                    alignItems: "center",
+                  }}
+                >
                   {variant.attributes.map((attr, aIndex) => (
-                    <Grid key={aIndex} item xs={12} sm={6} md={3}>
+                    <Grid key={aIndex} item xs={12} sm={6} md={4}>
                       {attr.name === "Size" && variants[vIndex].sizeOptions ? (
                         <TextField
                           select

@@ -45,6 +45,14 @@ const SidebarLink = ({
   setActiveParent
 }: SidebarLinkProps) => {
   const pathname = usePathname();
+  const dispatch = useAppDispatch();
+
+  const handleResponsiveClose = () => {
+    if (window.innerWidth < 1020) {
+      dispatch(setIsSidebarCollapsed(true));
+    }
+  };
+
   
   const isActive =
     href && (pathname === href || (pathname === "/" && href === "/inv/dashboard"));
@@ -61,7 +69,7 @@ const SidebarLink = ({
   return (
     <div>
       {href ? (
-        <Link href={href}>
+        <Link href={href} onClick={handleResponsiveClose}>
           <div
             className={`cursor-pointer flex items-center ${
               isCollapsed

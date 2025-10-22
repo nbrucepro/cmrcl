@@ -38,7 +38,7 @@ const ProductFilters = ({
     <Paper
       elevation={3}
       sx={{
-        p: 3,
+        p: { xs: 2, sm: 3 },
         borderRadius: 4,
         mb: 3,
         background: (theme) =>
@@ -46,13 +46,15 @@ const ProductFilters = ({
       }}
     >
       <Stack
-        direction={{ xs: "column", md: "row" }}
-        spacing={3}
+        direction="row"
+        flexWrap="wrap"
+        rowGap={2}
+        columnGap={3}
         justifyContent="space-between"
-        alignItems={{ xs: "stretch", md: "center" }}
+        alignItems="center"
       >
         {/* Left side */}
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flex={1}>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flex={1} sx={{ minWidth: "250px" }}>
           <TextField
             label="Search products"
             size="small"
@@ -99,6 +101,12 @@ const ProductFilters = ({
           justifyContent={{ xs: "stretch", md: "flex-end" }}
           alignItems="center"
           flexShrink={0}
+          sx={{
+            width: { xs: "100%", md: "auto" },
+            "& button, & .MuiFormControl-root": {
+              width: { xs: "100%", sm: "auto" },
+            },
+          }}
         >
           <FormControl size="small" sx={{ minWidth: 150 }}>
             <InputLabel>Download as</InputLabel>
