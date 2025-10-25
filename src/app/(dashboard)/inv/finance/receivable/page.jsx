@@ -171,13 +171,13 @@ export default function ReceivablePage() {
       field: "amountDue",
       headerName: "Tota Amount",
       flex: 1,
-      renderCell: (params) => `Rs ${params.row.sale.totalAmount.toFixed(2)}`,
+      renderCell: (params) => `Rwf ${params.row.sale.totalAmount.toFixed(2)}`,
     },
     {
       field: "amountPaid",
       headerName: "Paid",
       flex: 1,
-      renderCell: (params) => `Rs ${params.value.toFixed(2)}`,
+      renderCell: (params) => `Rwf ${params.value.toFixed(2)}`,
     },
     {
       field: "balance",
@@ -190,7 +190,7 @@ export default function ReceivablePage() {
 
         return (
           <Typography color={balance > 0 ? "error.main" : "success.main"}>
-            Rs {balance > 0 ? balance.toFixed(2) : 0}
+            Rwf {balance > 0 ? balance.toFixed(2) : 0}
           </Typography>
         );
       },
@@ -418,10 +418,10 @@ export default function ReceivablePage() {
             alignItems="center"
           >
             <Typography variant="subtitle1">
-              Total Due: <strong>Rs {totalDue.toFixed(2)}</strong>
+              Total Due: <strong>Rwf {totalDue.toFixed(2)}</strong>
             </Typography>
             <Typography variant="subtitle1" color="success">
-              Total Paid: <strong>Rs {totalPaid.toFixed(2)}</strong>
+              Total Paid: <strong>Rwf {totalPaid.toFixed(2)}</strong>
             </Typography>
           </Box>
         </>
@@ -549,7 +549,7 @@ export default function ReceivablePage() {
                 }}
               >
                 <Typography variant="body2">
-                  <strong>Amount:</strong> Rs {p.amount.toFixed(2)}
+                  <strong>Amount:</strong> Rwf {p.amount.toFixed(2)}
                 </Typography>
                 <Typography variant="body2">
                   <strong>Date:</strong>{" "}

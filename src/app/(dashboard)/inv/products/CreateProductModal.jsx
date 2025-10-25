@@ -36,15 +36,6 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
   const [otherType, setOtherType] = useState(""); // new
 
   const { data: categories = [], isLoading } = useGetCategoriesQuery();
-  const { data: designs = [], isLoading: designsLoading } =
-  useGetDesignsByCategoryQuery(formData.categoryId, {
-    skip: !formData.categoryId,
-  });
-
-const { data: attributes = [], isLoading: attributesLoading } =
-  useGetAttributesByCategoryQuery(formData.categoryId, {
-    skip: !formData.categoryId,
-  });
 
   const { categoryMap, reverseCategoryMap, isLoading: categoryLoading } = useCategoryMap();
 
@@ -57,6 +48,23 @@ const { data: attributes = [], isLoading: attributesLoading } =
     stockQuantity: 0,
     rating: 0,
   });
+
+  const { data: designs = [], isLoading: designsLoading } =
+  useGetDesignsByCategoryQuery(formData.categoryId, {
+    skip: !formData.categoryId,
+  });
+
+const { data: attributes = [], isLoading: attributesLoading } =
+  useGetAttributesByCategoryQuery(formData.categoryId, {
+    skip: !formData.categoryId,
+  });
+  
+  const dynamicAttributes =
+  attributes?.map((attr) => ({
+    name: attr.name,
+    value: "",
+  })) || [];
+
   const doorTypes = [
     "Single Door",
     "Double Door",
@@ -90,14 +98,11 @@ const { data: attributes = [], isLoading: attributesLoading } =
     });
     setVariants([
       {
-        sku: "",
+        sku: `SKU-${Date.now()}`,
         purchasePrice: 0,
         sellingPrice: 0,
         stockQuantity: 0,
-        attributes: [
-          { name: "Length", value: 0 },
-          { name: "width", value: 0 },
-        ],
+        attributes: dynamicAttributes
       },
     ]);
     setErrors({});
@@ -119,8 +124,8 @@ const { data: attributes = [], isLoading: attributesLoading } =
     }
 
     variants.forEach((variant, vIndex) => {
-      if (!variant.sku.trim())
-        newErrors[`variant_sku_${vIndex}`] = "SKU is required";
+      // if (!variant.sku.trim())
+      //   newErrors[`variant_sku_${vIndex}`] = "SKU is required";
       if (variant.stockQuantity < 0)
         newErrors[`variant_stockQuantity_${vIndex}`] =
           "Stock can not be negative";
@@ -130,20 +135,11 @@ const { data: attributes = [], isLoading: attributesLoading } =
       if (variant.sellingPrice <= 0)
         newErrors[`variant_sellingPrice_${vIndex}`] =
           "Selling price must be greater than 0";
-      const requiredAttrs =
-        categoryAttributes[formData.categoryId]?.map((a) => a.name) || [];
-      requiredAttrs.forEach((reqName) => {
-        const attr = variant.attributes.find((a) => a.name === reqName);
-        if (!attr)
-          newErrors[`attr_${reqName}_${vIndex}`] = `${reqName} is required`;
-        else if (
-          attr.value === "" ||
-          (parseFloat(attr.value) <= 0 && !isNaN(attr.value))
-        )
-          newErrors[
-            `attr_${reqName}_${vIndex}`
-          ] = `${reqName} must be filled correctly`;
-      });
+      variant.attributes?.forEach((attr, aIndex) => {
+        if (!attr.value?.toString().trim()) {
+          newErrors[`attr_${attr.name}_${vIndex}_${aIndex}`] = `${attr.name} is required`;
+        }
+      });  
     });
 
     setErrors(newErrors);
@@ -170,30 +166,15 @@ const { data: attributes = [], isLoading: attributesLoading } =
     if (name === "categoryId") {
       const selectedCategory = categories.find((cat) => cat.categoryId === value);
       const categoryName = selectedCategory?.name?.toLowerCase();
-      if (categoryName === "lock") {
-        setVariants([
-          {
-            sku: "",
-            purchasePrice: 0,
-            sellingPrice: 0,
-            stockQuantity: 0,
-            attributes: [],
-          },
-        ]);
-      } else {
-        setVariants([
-          {
-            sku: "",
-            purchasePrice: 0,
-            sellingPrice: 0,
-            stockQuantity: 0,
-            attributes: [
-              { name: "Width", value: 0 },
-              { name: "Length", value: 0 },
-            ],
-          },
-        ]);
-      }
+      setVariants([
+        {
+          sku: `SKU-${Date.now()}`,
+          purchasePrice: 0,
+          sellingPrice: 0,
+          stockQuantity: 0,
+          attributes: dynamicAttributes,
+        },
+      ]);
     }
   };
   const getCategoryNameById = (id) => {
@@ -203,16 +184,19 @@ const { data: attributes = [], isLoading: attributesLoading } =
 
   const handleDesignChange = (e) => {
     const { value } = e.target;
-    handleChange(e); // keep formData updated
-
+    handleChange(e);
+  
     if (!formData.categoryId) return;
-    const dynamicAttributes = attributes.map((attr) => ({
+  
+    // Create dynamic attributes from API
+    const dynamicAttributes = attributes?.map((attr) => ({
       name: attr.name,
       value: "",
-    }));
+    })) || [];
+  
     setVariants([
       {
-        sku: "",
+        sku: `SKU-${Date.now()}`,
         purchasePrice: 0,
         sellingPrice: 0,
         stockQuantity: 0,
@@ -222,70 +206,8 @@ const { data: attributes = [], isLoading: attributesLoading } =
         ],
       },
     ]);
-
-    const categoryName = getCategoryNameById(formData.categoryId);
-
-    // ✅ Malaysian / Melamine / ZRK doors
-    if (["malaysian", "melamine", "zrk"].includes(categoryName)) {
-      const sizeOptions = designOptions[categoryName]?.[value] || [];
-      const extraAttrs = categoryAttributes[categoryName] || [];
-
-      setVariants([
-        {
-          sku: ``,
-          purchasePrice: 0,
-          sellingPrice: 0,
-          stockQuantity: 0,
-          attributes: [
-            { name: "Design", value },
-            { name: "Size", value: "" },
-            ...extraAttrs
-              .filter((a) => !["Design", "Size"].includes(a.name))
-              .map((a) => ({ name: a.name, value: a.defaultValue || "" })),
-          ],
-          sizeOptions,
-        },
-      ]);
-    }
-
-    // ✅ Mattress
-    else if (categoryName === "mattress") {
-      const extraAttrs = categoryAttributes["mattress"] || [];
-      setVariants([
-        {
-          sku: ``,
-          purchasePrice: 0,
-          sellingPrice: 0,
-          stockQuantity: 0,
-          attributes: [
-            { name: "Type", value },
-            { name: "Height", value: mattressHeights[0] || "" },
-            ...extraAttrs.map((a) => ({
-              name: a.name,
-              value: a.defaultValue || "",
-            })),
-          ],
-        },
-      ]);
-    }
-
-    // ✅ Lock / Others
-    else {
-      const extraAttrs = categoryAttributes[categoryName] || [];
-      setVariants([
-        {
-          sku: "",
-          purchasePrice: 0,
-          sellingPrice: 0,
-          stockQuantity: 0,
-          attributes: extraAttrs.map((a) => ({
-            name: a.name,
-            value: a.defaultValue || "",
-          })),
-        },
-      ]);
-    }
   };
+  
 
   const handleVariantChange = (index, e) => {
     const { name, value } = e.target;
@@ -474,12 +396,15 @@ const { data: attributes = [], isLoading: attributesLoading } =
                     <option key="Select Type" value="Select Design">
                       Select Design
                     </option>
-                    {!designsLoading &&
-  designs.map((design) => (
+                    {!designsLoading ?
+                    (designs.map((design) => (
     <option key={design.designId} value={design.name}>
       {design.name}
     </option>
-  ))}
+  ))
+  ):(
+  <>...</>)
+}
 
 
                     {/* {(() => {
@@ -604,7 +529,7 @@ const { data: attributes = [], isLoading: attributesLoading } =
                 }}
               >
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} md={3}>
+                  {/* <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
                       label="SKU"
@@ -614,7 +539,7 @@ const { data: attributes = [], isLoading: attributesLoading } =
                       helperText={errors[`variant_sku_${vIndex}`]}
                       onChange={(e) => handleVariantChange(vIndex, e)}
                     />
-                  </Grid>
+                  </Grid> */}
                   <Grid item xs={12} sm={6} md={3}>
                     <TextField
                       fullWidth
@@ -663,76 +588,27 @@ const { data: attributes = [], isLoading: attributesLoading } =
                   </Typography>
                 )}
                 <Grid container spacing={2} sx={{ mt: 2 }}>
-                  {variant.attributes.map((attr, aIndex) => (
-                    <Grid key={aIndex} item xs={12} sm={6} md={3}>
-                      {attr.name === "Size" && variants[vIndex].sizeOptions ? (
-                        <TextField
-                          select
-                          fullWidth
-                          label="Select Size(inch)"
-                          name="value"
-                          value={attr.value}
-                          onChange={(e) =>
-                            handleAttributeChange(vIndex, aIndex, e)
-                          }
-                          SelectProps={{ native: true }}
-                        >
-                          <option value="">Select Size</option>
-                          {variants[vIndex].sizeOptions.map((size) => (
-                            <option key={size} value={size}>
-                              {size}
-                            </option>
-                          ))}
-                        </TextField>
-                      ) : (
-                        <TextField
-                          fullWidth
-                          label={`${attr.name} Value`}
-                          name="value"
-                          value={attr.value}
-                          error={!!errors[`attr_${attr.name}_${vIndex}`]}
-                          helperText={errors[`attr_${attr.name}_${vIndex}`]}
-                          onChange={(e) =>
-                            handleAttributeChange(vIndex, aIndex, e)
-                          }
-                          disabled={attr.name == "design" && true}
-                        />
-                      )}
-                    </Grid>
-                  ))}
+                {variant.attributes.map((attr, aIndex) => (
+  <Grid key={aIndex} item xs={12} sm={6} md={3}>
+    <TextField
+      fullWidth
+      label={attr.name}
+      name="value"
+      value={attr.value}
+      error={!!errors[`attr_${attr.name}_${vIndex}_${aIndex}`]}
+      helperText={errors[`attr_${attr.name}_${vIndex}_${aIndex}`]}
+      onChange={(e) => handleAttributeChange(vIndex, aIndex, e)}
+      disabled={attr.name.toLowerCase() === "design"}
+    />
+  </Grid>
+))}
+
                 </Grid>
 
-                {/* <Button
-                startIcon={<Add />}
-                onClick={() => addAttribute(vIndex)}
-                sx={{ mt: 1 }}
-              >
-                Add Attribute
-              </Button> */}
 
                 <Divider sx={{ my: 2 }} />
-                {/* {variants?.length > 1 && (
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<Delete />}
-                  onClick={() => removeVariant(vIndex)}
-                >
-                  Remove Variant
-                </Button>
-              )} */}
               </Box>
             ))}
-
-            {/* <Button
-            variant="contained"
-            color="success"
-            startIcon={<Add />}
-            onClick={addVariant}
-            sx={{ mt: 3 }}
-          >
-            Add Variant
-          </Button> */}
           </Paper>
         </Box>
       </DialogContent>

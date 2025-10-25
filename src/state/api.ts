@@ -195,7 +195,7 @@ export const api = createApi({
     }),
     deleteDesign: build.mutation<void, string>({
       query: (id) => ({
-        url: `/designs/${id}`,
+        url: `/api/designs/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Designs"],
@@ -203,12 +203,12 @@ export const api = createApi({
 
     // ===== Attributes =====
     getAttributesByCategory: build.query<Attribute[], string>({
-      query: (categoryId) => `/category-attributes/${categoryId}`,
+      query: (categoryId) => `/api/category-attributes/${categoryId}`,
       providesTags: ["Attributes"],
     }),
     createAttribute: build.mutation<Attribute, Partial<Attribute>>({
       query: (body) => ({
-        url: `/category-attributes`,
+        url: `/api/category-attributes`,
         method: "POST",
         body,
       }),
@@ -219,7 +219,7 @@ export const api = createApi({
       Partial<Attribute> & { id: string }
     >({
       query: ({ id, ...body }) => ({
-        url: `/category-attributes/${id}`,
+        url: `/api/category-attributes/${id}`,
         method: "PUT",
         body,
       }),
@@ -227,7 +227,7 @@ export const api = createApi({
     }),
     deleteAttribute: build.mutation<void, string>({
       query: (id) => ({
-        url: `/category-attributes/${id}`,
+        url: `/api/category-attributes/${id}`,
         method: "DELETE",
       }),
       invalidatesTags: ["Attributes"],

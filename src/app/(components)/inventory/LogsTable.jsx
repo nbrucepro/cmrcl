@@ -39,7 +39,7 @@ export default function LogsTable({ rows, type,loading, }) {
       flex: 1,
       valueGetter: (_, row) => {
         const amount = type === "sales" ? row?.totalAmount / row?.quantity : row?.totalCost / row?.quantity;
-        return amount != null ? "Rs " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+        return amount != null ? "Rwf " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
       },
     },
     {
@@ -48,7 +48,7 @@ export default function LogsTable({ rows, type,loading, }) {
       flex: 1,
       valueGetter: (_, row) => {
         const amount = type === "sales" ? row?.totalAmount : row?.totalCost;
-        return amount != null ? "Rs " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+        return amount != null ? "Rwf " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
       },
     },
     

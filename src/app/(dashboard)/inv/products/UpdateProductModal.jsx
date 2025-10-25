@@ -1,4 +1,3 @@
-"use client";
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -10,65 +9,60 @@ import {
   Typography,
   Divider,
   Box,
+  Paper,
   Grid,
   CircularProgress,
 } from "@mui/material";
+import { v4 } from "uuid";
 import {
-  categoryAttributes,
-  categoryIdMap,
-  designOptions,
-  mattressOptions,
-  useCategoryMap,
-} from "@/lib/DoorConfig";
+  useGetCategoriesQuery,
+  useGetDesignsByCategoryQuery,
+  useGetAttributesByCategoryQuery,
+} from "@/state/api";
+import { useCategoryMap, categoryIdMap } from "@/lib/DoorConfig";
+
 
 const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
   const [formData, setFormData] = useState(null);
   const [variants, setVariants] = useState([]);
   const [loading, setLoading] = useState(false);
-  // const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery();
-  const {
-    categoryMap,
-    categories,
-    isLoading: loadingCategories,
-    reverseCategoryMap,
-  } = useCategoryMap();
-
-  const MALAYSIAN = categoryMap["malaysian"];
-  const MELAMINE = categoryMap["melamine"];
-  const ZRK = categoryMap["zrk"];
-  const MATTRESS = categoryMap["mattress"];
-  const LOCK = categoryMap["lock"];
-
-  useEffect(() => {
-    if (product) {
-      setFormData({
-        name: product.name || "",
-        description: product.description || "",
-        categoryId: product.categoryId || "",
-        rating: product.rating || 0,
-      });
-
-      // ✅ Normalize variants (same logic as CreateModal)
-      setVariants(
-        product.variants?.map((v) => ({
-          variantId: v.variantId,
-          sku: v.sku || "",
-          purchasePrice: v.purchasePrice || 0,
-          sellingPrice: v.sellingPrice || 0,
-          stockQuantity: v.stockQuantity || 0,
-          attributes: v.attributes || [],
-        })) || [
-          {
-            sku: "",
-            purchasePrice: 0,
-            sellingPrice: 0,
-            stockQuantity: 0,
-            attributes: [],
-          },
-        ]
-      );
-    }
-  }, [product]);
+  const [errors, setErrors] = useState({});
+  const [otherType, setOtherType] = useState("");
+  
+  const { categoryMap } = useCategoryMap();
+  const { data: categories = [], isLoading: loadingCategories } = useGetCategoriesQuery();
+  const { data: designs = [], isLoading: loadingDesigns } =
+    useGetDesignsByCategoryQuery(formData?.categoryId, {
+      skip: !formData?.categoryId,
+    });
+  const { data: attributes = [], isLoading: loadingAttrs } =
+    useGetAttributesByCategoryQuery(formData?.categoryId, {
+      skip: !formData?.categoryId,
+    });
+    useEffect(() => {
+      if (product) {
+        setFormData({
+          productId: product.productId,
+          name: product.name || "",
+          description: product.description || "",
+          categoryId: product.categoryId || "",
+          rating: product.rating || 0,
+        });
+    
+        setVariants(
+          product.variants?.map((v) => ({
+            variantId: v.variantId || v4(),
+            sku: v.sku || "",
+            purchasePrice: v.purchasePrice || 0,
+            sellingPrice: v.sellingPrice || 0,
+            stockQuantity: v.stockQuantity || 0,
+            attributes:
+              v.attributes?.map((a) => ({ name: a.name, value: a.value })) || [],
+          })) || []
+        );
+      }
+    }, [product]);
+    
 
   if (!formData) return null;
 
@@ -242,32 +236,26 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
     setVariants(updated);
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+  
+    const finalFormData = {
+      ...formData,
+      categoryId:
+        categoryMap[formData.categoryId?.toLowerCase()] || formData.categoryId,
+      name: formData.name === "Other" ? otherType : formData.name,
+    };
+  
     setLoading(true);
     try {
-      const finalFormData = {
-        ...formData,
-        // categoryId: categoryIdMap[formData.categoryId] || formData.categoryId,
-        categoryId:
-          categoryMap[formData.categoryId?.toLowerCase()] ||
-          formData.categoryId,
-      };
-      await onUpdate({
-        ...finalFormData,
-        productId: product.productId,
-        variants,
-      });
+      await onUpdate({ ...finalFormData, variants });
       onClose();
-    } catch (err) {
-      return err;
     } finally {
       setLoading(false);
     }
   };
-  const designKey = reverseCategoryMap[formData.categoryId];
-  const availableDesigns = designKey
-    ? Object.keys(designOptions[designKey] || {})
-    : [];
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle sx={{ fontWeight: 600 }}>Update Product</DialogTitle>
@@ -310,23 +298,16 @@ const UpdateProductModal = ({ open, onClose, product, onUpdate }) => {
             >
               <option value="Select Design">Select Design</option>
 
-              {[MALAYSIAN, MELAMINE, ZRK, MATTRESS, LOCK].includes(
-                formData.categoryId
-              )
-                ? Object.keys(
-                    designOptions[reverseCategoryMap[formData.categoryId]] || {}
-                  ).map((type) => (
-                    <option key={type} value={type}>
-                      {type}
-                    </option>
-                  ))
-                : formData.categoryId === categoryMap["mattress"]
-                ? mattressOptions.map((m) => (
-                    <option key={m} value={m}>
-                      {m}
-                    </option>
-                  ))
-                : null}
+              {loadingDesigns ? (
+  <option disabled>Loading...</option>
+) : (
+  designs.map((design) => (
+    <option key={design.designId} value={design.name}>
+      {design.name}
+    </option>
+  ))
+)}
+
             </TextField>
           </Grid>
 

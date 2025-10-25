@@ -112,7 +112,7 @@ const CardPurchaseSummary = () => {
               />
 
                <YAxis
-                tickFormatter={(value) => `Rs ${(value / 1000).toFixed(0)}k`}
+                tickFormatter={(value) => `Rwf ${(value / 1000).toFixed(0)}k`}
                 tick={{ fontSize: 12, dx: -1 }}
                 tickLine={false}
                 axisLine={false}

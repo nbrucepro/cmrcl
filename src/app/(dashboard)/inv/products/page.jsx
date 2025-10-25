@@ -196,23 +196,13 @@ const Products = () => {
 
 
   const columns = [
-    {
-      field: "sku",
-      headerName: "SKU ID",
-      flex: 1,
-      minWidth: 150,
-      renderCell: (params) => params?.row?.variants[0]?.sku || "—",
-    },
-    {
-      field: "lockCode",
-      headerName: "Lock codes",
-      flex: 1,
-      minWidth: 150,
-      valueGetter: (_, row) => {
-        const lcode = row?.variants[0]?.attributes.find((a) => a.name === "Lock code")?.value || "";
-        return `${lcode || "—"}`;
-      }, 
-    },
+    // {
+    //   field: "sku",
+    //   headerName: "SKU ID",
+    //   flex: 1,
+    //   minWidth: 150,
+    //   renderCell: (params) => params?.row?.variants[0]?.sku.substring(0,6) || "—",
+    // },
     {
       field: "category",
       headerName: "Category",
@@ -238,7 +228,7 @@ const Products = () => {
       renderCell: (params) => (
         <Typography color="text.primary" noWrap>
           {params?.row?.variants[0]?.purchasePrice != null 
-            ? "Rs " + params.row.variants[0].purchasePrice.toLocaleString()
+            ? "Rwf " + params.row.variants[0].purchasePrice.toLocaleString()
             : "—"}
         </Typography>
       ),
@@ -251,7 +241,7 @@ const Products = () => {
       renderCell: (params) => (
         <Typography color="text.primary" noWrap>
           {params?.row?.variants[0]?.sellingPrice != null
-            ? "Rs " + params.row.variants[0].sellingPrice.toLocaleString()
+            ? "Rwf " + params.row.variants[0].sellingPrice.toLocaleString()
             : "—"}
         </Typography>
       ),
@@ -282,7 +272,7 @@ const Products = () => {
       sortable: false,
       renderCell: (params) => (
         <Stack direction="row" spacing={1}>
-          <Tooltip title="Edit">
+          {/* <Tooltip title="Edit">
             <IconButton
               color="primary"
               size="small"
@@ -290,7 +280,7 @@ const Products = () => {
             >
               <Edit fontSize="small" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
           <Tooltip title="Delete">
             <span>
               <IconButton
