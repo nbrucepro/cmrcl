@@ -100,13 +100,13 @@ if (isError) {
           <Card variant="outlined" className="shadow-sm">
             <Statistic
               title="Profit on sold items"
-              value={netProfit}
+              value={data?.netProfit}
               precision={2}
               valueStyle={{
-                color: netProfit >= 0 ? "#3f8600" : "#cf1322",
+                color: data?.netProfit >= 0 ? "#3f8600" : "#cf1322",
               }}
               prefix={
-                netProfit >= 0 ? <span> <ArrowUpwardOutlined />Rs </span>:<span><ArrowDownwardOutlined />Rs</span>
+                data?.netProfit >= 0 ? <span> <ArrowUpwardOutlined />Rs </span>:<span><ArrowDownwardOutlined />Rs</span>
               }
             />
           </Card>
