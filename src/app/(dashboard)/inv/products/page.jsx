@@ -92,7 +92,15 @@ const Products = () => {
       toast.success(" Product created successfully!");
       refetch();
     } catch (err) {
-      toast.error(" Failed to create product");
+      if (err?.data?.message?.includes("Unique constraint failed")) {
+        toast.error("SKU ID already exists.");
+      } 
+      else if (err?.data?.message?.includes("Invalid value provided")) {
+        toast.error("Invalid field value detected. Please check your inputs.");
+      } 
+      else {
+        toast.error("Failed to create product. Please try again.");
+      }
     }
   };
 

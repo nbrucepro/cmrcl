@@ -347,6 +347,7 @@ const CreateProductModal = ({ isOpen, onClose, onCreate }) => {
     setLoading(true);
     try {
       await onCreate({ ...finalFormData, variants });
+      resetForm();
       onClose();
     } finally {
       setLoading(false);

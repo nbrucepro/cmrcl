@@ -85,7 +85,12 @@ export default function InventoryBase({
 
       if (!response.ok) {
         const errData = await response.json();
-        throw new Error(errData.message || "Transaction failed");
+        if (errData.message === "Not enough stock available") {
+          toast.error("Not enough stock available for this product.");
+        } else {
+          toast.error("Something went wrong. Please try again.");
+        }
+        setModalOpen(false);
       }
 
       const result = await response.json();
@@ -129,7 +134,8 @@ export default function InventoryBase({
       fetchLogs();
       setModalOpen(false);
     } catch (err) {
-      toast.error("Something went wrong");
+      refetch();
+      setModalOpen(false);
     }
   };
 
@@ -170,7 +176,6 @@ export default function InventoryBase({
       handleFilter();
     }
   }, [fromDate, toDate]);
-  
 
   if (isLoading || loading) {
     return (
@@ -217,14 +222,14 @@ export default function InventoryBase({
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 my-6 bg-white/70 backdrop-blur-md shadow-sm p-4 sm:p-6 rounded-2xl border border-gray-100 w-full">
         {/* Date Filters */}
         <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
-           <TextField
+          <TextField
             label="From"
             type="date"
             value={fromDate}
             onChange={(e) => setFromDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             size="small"
-            sx={{minWidth: { xs: "100%", sm: 120 }}}
+            sx={{ minWidth: { xs: "100%", sm: 120 } }}
           />
           <TextField
             label="To"
@@ -233,7 +238,7 @@ export default function InventoryBase({
             onChange={(e) => setToDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
             size="small"
-            sx={{minWidth: { xs: "100%", sm: 120 }}}
+            sx={{ minWidth: { xs: "100%", sm: 120 } }}
           />
 
           <Tooltip title="Reset Filters">
@@ -263,7 +268,7 @@ export default function InventoryBase({
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row flex-wrap justify-end items-stretch gap-3 w-full lg:w-auto">
-            <Tooltip title="Download CSV">
+          <Tooltip title="Download CSV">
             <Button
               variant="outlined"
               color="success"
