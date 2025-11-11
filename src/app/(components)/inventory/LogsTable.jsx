@@ -3,7 +3,11 @@
 import dynamic from "next/dynamic";
 import { useCategoryMap } from "@/lib/DoorConfig";
 import Loader from "../common/Loader";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
+import { Printer } from "lucide-react";
+import { useReactToPrint } from "react-to-print";
+import SaleBill from "../../../components/SaleBill";
+import { Button } from "@mui/material";
 
 const DataGrid = dynamic(
   () => import("@mui/x-data-grid").then((mod) => mod.DataGrid),
@@ -27,7 +31,14 @@ export default function LogsTable({ rows, type, loading }) {
     if (type !== "sales" || !rows) return 0;
     return rows.reduce((sum, row) => sum + (row.totalAmount || 0), 0);
   }, [rows, type]);
+  const printRef = useRef();
+  const [selectedSale, setSelectedSale] = useState(null);
 
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: "Sales Bill",
+    removeAfterPrint: true,
+  });
   const columns = [
     {
       field: "categoryId",
@@ -100,7 +111,7 @@ export default function LogsTable({ rows, type, loading }) {
       field: "date",
       headerName: "Date",
       flex: 1,
-      minWidth: 160,
+      minWidth: 180,
       valueGetter: (_, row) => {
         const date = new Date(row?.date);
         if (isNaN(date.getTime())) return "Invalid Date";
@@ -131,6 +142,25 @@ export default function LogsTable({ rows, type, loading }) {
           })
         );
       },
+    });
+    columns.splice(7, 0, {
+      field: "actions",
+      headerName: "Actions",
+      minWidth: 100,
+      headerAlign:"center",
+      renderCell: (params) => (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setSelectedSale(params.row);
+            setTimeout(handlePrint, 100); 
+          }}
+          className="text-blue-600 border-blue-300 hover:bg-blue-50"
+        >
+          <Printer size={16} className="mr-1" /> Print
+        </Button>
+      ),
     });
   }
 
@@ -166,6 +196,11 @@ export default function LogsTable({ rows, type, loading }) {
           },
         }}
       />
+      <div style={{ display: "none" }}>
+      <div ref={printRef}>
+        <SaleBill sale={selectedSale} />
+        </div>
+      </div>
       {type === "sales" && (
         <div className="flex gap-3 justify-end items-center p-3 font-semibold text-gray-700 border-t border-gray-200 mt-2">
           <div>

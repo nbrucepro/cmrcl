@@ -42,7 +42,6 @@ export default function TransactionModal({
   const [hasBalance, setHasBalance] = useState(false);
   const { reverseCategoryMap } = useCategoryMap();
 
-
   const handleSubmit = async () => {
     const product = products.find((p) => p.productId === form.productId);
     const newErrors = {};
@@ -84,9 +83,7 @@ export default function TransactionModal({
             <InputLabel>Transaction Type</InputLabel>
             <Select
               value={transactionType}
-              onChange={(e) =>
-                setTransactionType(e.target.value)
-              }
+              onChange={(e) => setTransactionType(e.target.value)}
               label="Transaction Type"
               disabled
             >
@@ -122,11 +119,11 @@ export default function TransactionModal({
               }}
               MenuProps={{
                 PaperProps: {
-                  style : {
-                    maxHeight:300,
-                    overflowY: "auto"
-                  }
-                }
+                  style: {
+                    maxHeight: 300,
+                    overflowY: "auto",
+                  },
+                },
               }}
             >
               {/* {products.map((p) => (
@@ -136,24 +133,38 @@ export default function TransactionModal({
             ))} */}
               {products.map((p) => {
                 const categoryName = reverseCategoryMap[p.categoryId];
+                const isMattress = categoryName
+                  ?.toLowerCase()
+                  .includes("mattress");
                 const categoryPrefix = categoryName
                   ? categoryName.charAt(0).toUpperCase()
                   : "";
                 const design =
-                  p.variants?.[0]?.attributes?.find(
-                    (a) => a.name === "Design"
-                  )?.value || "";
+                  p.variants?.[0]?.attributes?.find((a) => a.name === "Design")
+                    ?.value || "";
                 const size =
-                  p.variants?.[0]?.attributes?.find(
-                    (a) => a.name === "Size"
-                  )?.value || "";
+                  p.variants?.[0]?.attributes?.find((a) => a.name === "Size")
+                    ?.value || "";
+                const type =
+                  p.variants?.[0]?.attributes?.find((a) => a.name === "Type")
+                    ?.value || "";
+                const height =
+                  p.variants?.[0]?.attributes?.find((a) => a.name === "Height")
+                    ?.value || "";
+
+                const mattressAbbr = `M-${type}-${height?.replace(/\s*inch/i, '"')}`;
+
                 const shortName = `${categoryPrefix}-${
                   design?.charAt(0)?.toUpperCase() || ""
-                }-${size}"`;
+                }-${size}`;
+                const pname = categoryName ? shortName : p.name
+                const displayName = isMattress
+                ? mattressAbbr
+                : pname;
 
                 return (
                   <MenuItem key={p.productId} value={p.productId}>
-                    {categoryName ? shortName : p.name} (Stock:{" "}
+                    {displayName} (Stock:{" "}
                     {p?.variants?.[0]?.stockQuantity ?? 0})
                   </MenuItem>
                 );

@@ -16,6 +16,7 @@ import {
   AddCircle,
 } from "@mui/icons-material";
 import { Tooltip } from "@mui/material";
+import ProductFilters from "./ProductFilters";
 
 export default function InventoryBase({
   title,
@@ -30,6 +31,8 @@ export default function InventoryBase({
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const API_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
   const token = localStorage.getItem("token");
@@ -139,16 +142,6 @@ export default function InventoryBase({
     }
   };
 
-  const handleFilter = () => {
-    if (!fromDate || !toDate) return toast.error("Please select both dates");
-    const from = new Date(fromDate);
-    const to = new Date(toDate);
-    const filtered = logs.filter((log) => {
-      const logDate = new Date(log.createdAt || log.date || log.purchaseDate);
-      return logDate >= from && logDate <= to;
-    });
-    setFilteredLogs(filtered);
-  };
 
   const handleReset = () => {
     setFilteredLogs(logs);
@@ -171,11 +164,39 @@ export default function InventoryBase({
     saveAs(blob, `${endpoint}_logs_${Date.now()}.csv`);
     toast.success("Download started");
   };
+
   useEffect(() => {
+    let filtered = [...logs];
+
+    // Date filter
     if (fromDate && toDate) {
-      handleFilter();
+      const from = new Date(fromDate);
+      const to = new Date(toDate);
+      to.setHours(23, 59, 59, 999);
+      filtered = filtered.filter((log) => {
+        const logDate = new Date(log.createdAt || log.date || log.purchaseDate);
+        return logDate >= from && logDate <= to;
+      });
     }
-  }, [fromDate, toDate]);
+
+    // Product name search
+    if (searchTerm.trim()) {
+      filtered = filtered.filter((log) =>
+        log.productName?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Category filter
+    if (categoryFilter !== "all" && categoryFilter) {
+      filtered = filtered.filter(
+        (log) =>
+          log.categoryId === categoryFilter ||
+          log.categoryName === categoryFilter
+      );
+    }
+
+    setFilteredLogs(filtered);
+  }, [logs, fromDate, toDate, searchTerm, categoryFilter]);
 
   if (isLoading || loading) {
     return (
@@ -217,102 +238,50 @@ export default function InventoryBase({
 
   return (
     <div className="flex flex-col px-3 sm:px-6 lg:px-2 pb-6 w-full overflow-x-hidden">
-      <Header name={`${title}`} />
-      {/* CONTROL BAR */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 my-6 bg-white/70 backdrop-blur-md shadow-sm p-4 sm:p-6 rounded-2xl border border-gray-100 w-full">
-        {/* Date Filters */}
-        <div className="flex flex-wrap items-end gap-3 w-full lg:w-auto">
-          <TextField
-            label="From"
-            type="date"
-            value={fromDate}
-            onChange={(e) => setFromDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            sx={{ minWidth: { xs: "100%", sm: 120 } }}
-          />
-          <TextField
-            label="To"
-            type="date"
-            value={toDate}
-            onChange={(e) => setToDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            size="small"
-            sx={{ minWidth: { xs: "100%", sm: 120 } }}
-          />
-
-          <Tooltip title="Reset Filters">
-            <Button
-              variant="outlined"
-              color="secondary"
-              startIcon={<RestartAlt />}
-              onClick={handleReset}
-              sx={{
-                textTransform: "none",
-                borderRadius: "12px",
-                width: { xs: "100%", sm: "auto" },
-                minWidth: { xs: "100%", sm: 120 },
-                borderRadius: "12px",
-                textTransform: "none",
-                borderRadius: "12px",
-                px: 2,
-                py: 1,
-                minWidth: 120,
-                whiteSpace: "nowrap",
-              }}
-            >
-              Reset Filters
-            </Button>
-          </Tooltip>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row flex-wrap justify-end items-stretch gap-3 w-full lg:w-auto">
-          <Tooltip title="Download CSV">
-            <Button
-              variant="outlined"
-              color="success"
-              startIcon={<Download />}
-              onClick={handleDownload}
-              sx={{
-                textTransform: "none",
-                borderRadius: "12px",
-                px: 2,
-                py: 1,
-                minWidth: 120,
-                whiteSpace: "nowrap",
-              }}
-            >
-              Download
-            </Button>
-          </Tooltip>
-
-          <Tooltip title="New Transaction">
-            <Button
-              variant="outlined"
-              startIcon={<AddCircle />}
-              onClick={() => setModalOpen(true)}
-              sx={{
-                background: "linear-gradient(90deg, #2563eb, #1d4ed8)",
-                color: "white",
-                textTransform: "none",
-                fontWeight: 600,
-                borderRadius: "12px",
-                px: 2,
-                py: 1,
-                minWidth: 120,
-                whiteSpace: "nowrap",
-                "&:hover": {
-                  background: "linear-gradient(90deg, #1e40af, #1d4ed8)",
-                },
-                transition: "all 0.2s ease-in-out",
-              }}
-            >
-              New Transaction
-            </Button>
-          </Tooltip>
-        </div>
+      <div className="flex justify-between">
+        <Header name={`${title}`} />
+        <Tooltip title="New Transaction">
+          <Button
+            variant="outlined"
+            startIcon={<AddCircle />}
+            onClick={() => setModalOpen(true)}
+            sx={{
+              background: "linear-gradient(90deg, #2563eb, #1d4ed8)",
+              color: "white",
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: "12px",
+              px: 2,
+              py: 1,
+              minWidth: 120,
+              whiteSpace: "nowrap",
+              "&:hover": {
+                background: "linear-gradient(90deg, #1e40af, #1d4ed8)",
+              },
+              transition: "all 0.2s ease-in-out",
+            }}
+          >
+            New Transaction
+          </Button>
+        </Tooltip>
       </div>
+
+      {/* CONTROL BAR */}
+      <div className="mt-6">
+        <ProductFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          fromDate={fromDate}
+          setFromDate={setFromDate}
+          toDate={toDate}
+          setToDate={setToDate}
+          onDownload={() => handleDownload()}
+          onReset={handleReset}
+        />
+      </div>
+
       <LogsTable
         rows={enableFilter ? filteredLogs : logs}
         type={endpoint}

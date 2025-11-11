@@ -14,12 +14,17 @@ import {
 } from "@mui/material";
 import { Download, RestartAlt } from "@mui/icons-material";
 import { useGetCategoriesQuery } from "@/state/api";
+import { usePathname } from "next/navigation";
 
 const ProductFilters = ({
   searchTerm,
   setSearchTerm,
   categoryFilter,
   setCategoryFilter,
+  fromDate,
+  setFromDate,
+  toDate,
+  setToDate,
   onDownload,
   onReset,
 }: {
@@ -27,12 +32,18 @@ const ProductFilters = ({
   setSearchTerm: (val: string) => void;
   categoryFilter: string;
   setCategoryFilter: (val: string) => void;
+  fromDate: string;
+  setFromDate: (val: string) => void;
+  toDate: string;
+  setToDate: (val: string) => void;
   onDownload: (type: string) => void;
   onReset: () => void;
 }) => {
   const [downloadType, setDownloadType] = React.useState("excel");
 
   const { data: categories = [], isLoading } = useGetCategoriesQuery();
+  const pathname = usePathname();
+  const showDateFilters = pathname !== "/inv/products";
 
   return (
     <Paper
@@ -54,7 +65,12 @@ const ProductFilters = ({
         alignItems="center"
       >
         {/* Left side */}
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={2} flex={1} sx={{ minWidth: "250px" }}>
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          spacing={2}
+          flex={1}
+          sx={{ minWidth: "250px" }}
+        >
           <TextField
             label="Search products"
             size="small"
@@ -81,6 +97,28 @@ const ProductFilters = ({
                 </MenuItem>
               ))}
           </TextField>
+          {showDateFilters && (
+            <>
+              <TextField
+                label="From Date"
+                type="date"
+                size="small"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 150 }}
+              />
+              <TextField
+                label="To Date"
+                type="date"
+                size="small"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                sx={{ minWidth: 150 }}
+              />
+            </>
+          )}
         </Stack>
 
         {/* Divider for medium screens and above */}
