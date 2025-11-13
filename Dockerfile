@@ -1,20 +1,37 @@
-# ---------- Base Builder Stage ----------
-FROM node:20-alpine AS builder
+FROM node:24-alpine AS base
+
+FROM base AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm install
+COPY package.json ./
 
+RUN npm install --force --legacy-peer-deps
+
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+ENV PORT=3002
 RUN npm run build
 
-# ---------- Production Stage ----------
-FROM node:20-alpine AS runner
+FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=3002
+ENV HOST=0.0.0.0
 
-COPY --from=builder /app ./
+RUN addgroup --system --gid 1001 nodejs \
+    && adduser --system --uid 1001 nextjs
 
-EXPOSE 3000
-CMD ["npm", "start"]
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3002
+CMD ["node", "server.js"]
+
