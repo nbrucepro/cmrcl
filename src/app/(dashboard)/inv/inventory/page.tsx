@@ -69,6 +69,7 @@ export default function InventoryPage() {
         products={products || []}
         onSubmit={handleSubmit}
         tType={"sale"}
+        initialData={null}
       />
     </div>
   );
