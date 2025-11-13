@@ -16,7 +16,7 @@ import {
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function TransactionModal({
   open,
@@ -24,6 +24,8 @@ export default function TransactionModal({
   products,
   tType,
   onSubmit,
+  initialData,
+  mode = "create",
 }) {
   const [transactionType, setTransactionType] = useState(tType || "sale");
   const [form, setForm] = useState({
@@ -36,11 +38,77 @@ export default function TransactionModal({
     supplierName: "",
     dueDate: "",
     notes: "",
+    total: 0,
   });
+  const resetForm = () => {
+    setForm({
+      productId: "",
+      quantity: 1,
+      price: "",
+      amountPaid: 0,
+      customerName: "",
+      contactInfo: "",
+      supplierName: "",
+      dueDate: "",
+      notes: "",
+      total: 0,
+    });
+    setErrors({});
+    setHasBalance(false);
+  };
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [hasBalance, setHasBalance] = useState(false);
   const { reverseCategoryMap } = useCategoryMap();
+
+  // Prefill when editing or when initialData changes
+  useEffect(() => {
+    if (initialData && mode === "edit") {
+      setTransactionType(
+        tType || (initialData.totalAmount !== undefined ? "sale" : "purchase")
+      );
+      console.log(initialData);
+      setForm({
+        productId: initialData.productId || "",
+        quantity: initialData?.quantity,
+        total: initialData?.totalAmount ?? initialData?.totalCost,
+        price:
+          tType == "sale"
+            ? initialData?.totalAmount / initialData?.quantity
+            : initialData?.totalCost / initialData?.quantity,
+        amountPaid: initialData.amountPaid ?? 0,
+        customerName: initialData.customerName ?? "",
+        contactInfo: initialData.contactInfo ?? "",
+        supplierName: initialData.supplierName ?? "",
+        dueDate: initialData.dueDate
+          ? initialData.dueDate.split?.("T")?.[0] ?? initialData.dueDate
+          : "",
+        notes: initialData.notes ?? "",
+      });
+      // set hasBalance depending on whether there's receivable/payable data
+      setHasBalance(Boolean(initialData.amountDue || initialData.amountPaid));
+    } else if (mode === "create" && !open) {
+      // reset when closed
+      setForm({
+        productId: "",
+        quantity: 1,
+        price: 0,
+        amountPaid: 0,
+        customerName: "",
+        contactInfo: "",
+        supplierName: "",
+        dueDate: "",
+        notes: "",
+        total: 0,
+      });
+      setHasBalance(false);
+    }
+  }, [initialData, mode, open, tType]);
+  
+  useEffect(() => {
+    const total = (Number(form.quantity) || 0) * (Number(form.price) || 0);
+    setForm((prev) => ({ ...prev, total }));
+  }, [form.quantity, form.price]);
 
   const handleSubmit = async () => {
     const product = products.find((p) => p.productId === form.productId);
@@ -49,23 +117,37 @@ export default function TransactionModal({
     if (!form.productId) newErrors.productId = "Please select a product.";
     if (form.quantity <= 0)
       newErrors.quantity = "Quantity must be greater than 0.";
-    if (transactionType === "sale" && product && form.quantity > product.stock)
-      newErrors.quantity = `Cannot sell more than available stock (${product.stock}).`;
+    if (transactionType === "sale" && product) {
+     const stock = product?.variants?.[0]?.stockQuantity ?? 0;
+    if (stock === 0)
+     newErrors.quantity = "This product is out of stock.";
+    else if (form.quantity > stock)
+      newErrors.quantity = `Can not sell more than available stock (${stock}).`;
+    }
+
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) return;
     try {
       setLoading(true);
-      await onSubmit(form, transactionType, hasBalance);
+      await onSubmit(form, transactionType, hasBalance, mode, initialData);
+      resetForm();
       onClose();
     } finally {
       setLoading(false);
     }
   };
+
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
       <DialogTitle>
-        {transactionType === "sale" ? "New Sale" : "New Purchase"}
+        {mode === "edit"
+          ? transactionType === "sale"
+            ? "Edit Sale"
+            : "Edit Purchase"
+          : transactionType === "sale"
+          ? "New Sale"
+          : "New Purchase"}
       </DialogTitle>
       <DialogContent>
         <div
@@ -108,6 +190,7 @@ export default function TransactionModal({
                 setForm({
                   ...form,
                   productId: selectedId,
+                  quantity: product?.variants[0]?.stockQuantity === 0 ? product?.variants[0]?.stockQuantity : 1,
                   price: product
                     ? transactionType === "sale"
                       ? product?.variants[0]?.sellingPrice
@@ -115,7 +198,7 @@ export default function TransactionModal({
                     : 0, // default to product price
                 });
 
-                setErrors({ ...errors, productId: "" });
+                setErrors({ ...errors, productId: "",quantity:"" });
               }}
               MenuProps={{
                 PaperProps: {
@@ -152,20 +235,21 @@ export default function TransactionModal({
                   p.variants?.[0]?.attributes?.find((a) => a.name === "Height")
                     ?.value || "";
 
-                const mattressAbbr = `M-${type}-${height?.replace(/\s*inch/i, '"')}`;
+                const mattressAbbr = `M-${type}-${height?.replace(
+                  /\s*inch/i,
+                  '"'
+                )}`;
 
                 const shortName = `${categoryPrefix}-${
                   design?.charAt(0)?.toUpperCase() || ""
                 }-${size}`;
-                const pname = categoryName ? shortName : p.name
-                const displayName = isMattress
-                ? mattressAbbr
-                : pname;
+                const pname = categoryName ? shortName : p.name;
+                const displayName = isMattress ? mattressAbbr : pname;
 
                 return (
                   <MenuItem key={p.productId} value={p.productId}>
-                    {displayName} (Stock:{" "}
-                    {p?.variants?.[0]?.stockQuantity ?? 0})
+                    {displayName} (Stock: {p?.variants?.[0]?.stockQuantity ?? 0}
+                    )
                   </MenuItem>
                 );
               })}
@@ -179,42 +263,60 @@ export default function TransactionModal({
 
           <TextField
             type="number"
-            label="Quantity"
+            label={"Quantity"}
             fullWidth
-            value={form.quantity}
+            value={form.quantity || ""}
             error={!!errors.quantity}
             helperText={errors.quantity}
-            // onChange={(e) => setForm({ ...form, quantity: Number(e.target.value) })}
             onChange={(e) => {
-              const qty = Number(e.target.value);
+              const value = e.target.value;
+              const qty = value === "" ? "" : Number(value);
               let err = "";
               const product = products.find(
                 (p) => p.productId === form.productId
               );
-
               if (!form.productId) err = "Select a product first.";
               else if (qty <= 0) err = "Quantity must be greater than 0.";
               else if (
                 transactionType === "sale" &&
                 product &&
-                qty > product.stock
+                qty > product?.variants?.[0]?.stockQuantity
               )
-                err = `Cannot sell more than available stock (${product.stock}).`;
+                err = `Can not sell more than available stock (${product?.variants?.[0]?.stockQuantity}).`;
 
               setErrors({ ...errors, quantity: err });
               setForm({ ...form, quantity: qty });
             }}
           />
-
           <TextField
             type="number"
             fullWidth
             label={transactionType === "sale" ? "Unit Price" : "Unit Cost"}
-            value={form.price}
+            value={form.price || ""}
             onChange={(e) =>
-              setForm({ ...form, price: Number(e.target.value) })
+              setForm({
+                ...form,
+                price: e.target.value === "" ? "" : Number(e.target.value),
+              })
             }
           />
+          <div
+            style={{
+              padding: "0.8rem",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              background: "rgba(250,250,250,0.9)",
+            }}
+          >
+            <span style={{ fontWeight: 500, color: "#555" }}>Total Amount</span>
+            <span
+              style={{ fontWeight: 700, fontSize: "1.2rem", color: "#1976d2" }}
+            >
+              Rs {form.total?.toLocaleString()}
+            </span>
+          </div>
+
           {transactionType === "sale" && (
             <FormControlLabel
               control={
@@ -234,8 +336,14 @@ export default function TransactionModal({
                 fullWidth
                 label="Amount Paid"
                 value={form.amountPaid}
-                onChange={(e) =>
-                  setForm({ ...form, amountPaid: Number(e.target.value) })
+                onChange={(e) =>{
+                  let err = "";
+                  setForm({
+                    ...form,
+                    amountPaid:
+                      e.target.value === "" ? 0 : Number(e.target.value),
+                  })
+                }
                 }
                 sx={{ mt: 1 }}
               />
@@ -293,7 +401,14 @@ export default function TransactionModal({
         </div>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button
+          onClick={() => {
+            resetForm();
+            onClose();
+          }}
+        >
+          Cancel
+        </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
@@ -307,8 +422,12 @@ export default function TransactionModal({
         >
           {loading
             ? transactionType === "sale"
-              ? "Recording Sale..."
-              : "Recording Purchase..."
+              ? "Saving..."
+              : "Saving..."
+            : mode === "edit"
+            ? transactionType === "sale"
+              ? "Update Sale"
+              : "Update Purchase"
             : transactionType === "sale"
             ? "Record Sale"
             : "Record Purchase"}

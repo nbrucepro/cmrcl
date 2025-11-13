@@ -7,7 +7,8 @@ import { useMemo, useRef, useState } from "react";
 import { Printer } from "lucide-react";
 import { useReactToPrint } from "react-to-print";
 import SaleBill from "../../../components/SaleBill";
-import { Button } from "@mui/material";
+import { Button, IconButton, Stack, Tooltip } from "@mui/material";
+import { Delete, Edit } from "@mui/icons-material";
 
 const DataGrid = dynamic(
   () => import("@mui/x-data-grid").then((mod) => mod.DataGrid),
@@ -21,7 +22,7 @@ const DataGrid = dynamic(
   }
 );
 
-export default function LogsTable({ rows, type, loading }) {
+export default function LogsTable({ rows, type, loading,onEditTransaction, onDeleteTransaction  }) {
   const { reverseCategoryMap } = useCategoryMap();
   const totalProfit = useMemo(() => {
     if (type !== "sales" || !rows) return 0;
@@ -64,25 +65,23 @@ export default function LogsTable({ rows, type, loading }) {
       },
     },
     { field: "quantity", headerName: "Quantity", flex: 0.6, minWidth: 100 },
-    {
-      field: "price",
-      headerName: type === "sales" ? "Purchase Price" : "Unit Cost",
-      flex: 1,
-      minWidth: 120,
-      valueGetter: (_, row) => {
-        const amount = type === "sales" ? row?.cost : row?.purchasePrice;
-        return amount != null
-          ? "Rs " +
-              amount.toLocaleString(undefined, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
-          : "—";
-      },
-    },
+    ...(type === "sales"
+    ? [
+        {
+          field: "price",
+          headerName: "Purchase Price",
+          flex: 1,
+          minWidth: 130,
+          valueGetter: (_, row) => {
+            const profit = row?.cost || 0;
+            return "Rs " + profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          },
+        },
+      ]
+    : []),
     {
       field: "totalAmount",
-      headerName: "Selling Amount",
+      headerName: "Total Amount",
       flex: 1,
       minWidth: 130,
       valueGetter: (_, row) => {
@@ -96,16 +95,6 @@ export default function LogsTable({ rows, type, loading }) {
           : "—";
       },
     },
-    // {
-    //   field: "Profit",
-    //   headerName: "Profit",
-    //   flex: 1,
-    //   minWidth: 130,
-    //   valueGetter: (_, row) => {
-    //     const amount = type === "sales" ? row?.totalAmount - (row?.sellingPrice*row?.quantity) : row?.totalCost;
-    //     return amount != null ? "Rs " + amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
-    //   },
-    // },
 
     {
       field: "date",
@@ -124,45 +113,104 @@ export default function LogsTable({ rows, type, loading }) {
         });
       },
     },
-  ];
-  if (type === "sales") {
-    columns.splice(5, 0, {
-      field: "profit",
-      headerName: "Profit",
-      flex: 1,
-      minWidth: 130,
-      valueGetter: (_, row) => {
-        const profit = row?.profit;
-
-        return (
-          "Rs " +
-          profit.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })
-        );
-      },
-    });
-    columns.splice(7, 0, {
+    ...(type === "sales"
+    ? [
+        {
+          field: "profit",
+          headerName: "Profit",
+          flex: 1,
+          minWidth: 130,
+          valueGetter: (_, row) => {
+            const profit = row?.profit || 0;
+            return "Rs " + profit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          },
+        },
+      ]
+    : []),
+    {
       field: "actions",
       headerName: "Actions",
-      minWidth: 100,
-      headerAlign:"center",
+      // flex:0.8,
+      width:100,
+      sortable: false,
       renderCell: (params) => (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => {
-            setSelectedSale(params.row);
-            setTimeout(handlePrint, 100); 
-          }}
-          className="text-blue-600 border-blue-300 hover:bg-blue-50"
-        >
-          <Printer size={16} className="mr-1" /> Print
-        </Button>
+        <Stack direction="row"
+        spacing={0.3}
+        alignItems="center"
+        justifyContent="center"
+        sx={{ width: "100%", height: "100%" }}>
+          <Tooltip title="Edit">
+          <IconButton size="small" onClick={() => onEditTransaction?.(params.row, type)} >
+          <Edit fontSize="16" className="text-indigo-600"/>
+          </IconButton>
+          </Tooltip>
+          <Tooltip title="Delete">
+          <IconButton
+            size="small"
+            
+            onClick={() => {
+              onDeleteTransaction(params.row, type);
+            }}
+          >
+          <Delete fontSize={"16"} className="text-red-600" />
+          </IconButton>
+          </Tooltip>
+          {type === "sales" && (
+            <Tooltip title="print">
+            <IconButton
+              size="small"
+              variant="outline"
+              onClick={() => {
+                setSelectedSale(params.row);
+                setTimeout(handlePrint, 100);
+              }}
+            >
+            <Printer size={16} className=" text-blue-600 border-blue-300 hover:bg-blue-50"/>
+            </IconButton>
+            </Tooltip>
+          )}
+        </Stack>
       ),
-    });
-  }
+    },
+  ];
+  // if (type === "sales") {
+  //   columns.splice(5, 0, {
+  //     field: "profit",
+  //     headerName: "Profit",
+  //     flex: 1,
+  //     minWidth: 130,
+  //     valueGetter: (_, row) => {
+  //       const profit = row?.profit;
+
+  //       return (
+  //         "Rs " +
+  //         profit.toLocaleString(undefined, {
+  //           minimumFractionDigits: 2,
+  //           maximumFractionDigits: 2,
+  //         })
+  //       );
+  //     },
+  //   });
+  //   columns.splice(7, 0, {
+  //     field: "actions",
+  //     headerName: "Actions",
+  //     minWidth: 100,
+  //     headerAlign:"center",
+  //     renderCell: (params) => (
+  //       <Button
+  //         size="sm"
+  //         variant="outline"
+  //         onClick={() => {
+  //           setSelectedSale(params.row);
+  //           setTimeout(handlePrint, 100); 
+  //         }}
+  //         className="text-blue-600 border-blue-300 hover:bg-blue-50"
+  //       >
+  //         <Printer size={16} className="mr-1" /> Print
+  //       </Button>
+  //     ),
+  //   });
+  // }
 
   return (
     <div className="w-full overflow-x-auto bg-white shadow-sm rounded-2xl border border-gray-100 p-3 sm:p-5 mt-4">

@@ -17,6 +17,7 @@ import {
 } from "@mui/icons-material";
 import { Tooltip } from "@mui/material";
 import ProductFilters from "./ProductFilters";
+import DeleteConfirmModal from "./DeleteConfirmModal";
 
 export default function InventoryBase({
   title,
@@ -27,6 +28,9 @@ export default function InventoryBase({
   const { data: products, isError, isLoading, refetch } = useGetProductsQuery();
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [modalMode, setModalMode] = useState("create");
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [logs, setLogs] = useState([]);
   const [filteredLogs, setFilteredLogs] = useState([]);
   const [fromDate, setFromDate] = useState("");
@@ -61,8 +65,24 @@ export default function InventoryBase({
   useEffect(() => {
     fetchLogs();
   }, []);
-
-  const handleSubmit = async (form, transactionType, hasBalance) => {
+  const handleDeleteTransaction = async (id) => {
+      try {
+        console.log("endpoint",`${API_URL}api/products/${endpoint}/${id}`)
+        const res = await fetch(`${API_URL}api/products/${endpoint}/${id}`, {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (!res.ok) throw new Error("Failed to delete transaction");
+        toast.success("Transaction deleted!");
+        fetchLogs();
+      } catch (err) {
+        toast.error("Error deleting transaction");
+      }
+    };
+    
+  const handleSubmit = async (form, transactionType, hasBalance, mode = "create", initialData = null) => {
     const body =
       transactionType === "sale"
         ? {
@@ -77,8 +97,15 @@ export default function InventoryBase({
           };
 
     try {
-      const response = await fetch(`${API_URL}api/products/${endpoint}`, {
-        method: "POST",
+      const url =
+        mode === "edit"
+          ? `${API_URL}api/products/${endpoint}/${initialData?.saleId || initialData?.purchaseId}`
+          : `${API_URL}api/products/${endpoint}`;
+      
+      const method = mode === "edit" ? "PUT" : "POST";
+      
+      const response = await fetch(url, {
+        method,
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -244,7 +271,10 @@ export default function InventoryBase({
           <Button
             variant="outlined"
             startIcon={<AddCircle />}
-            onClick={() => setModalOpen(true)}
+            onClick={() => {
+              setModalMode("create");
+              setModalOpen(true)
+            }}
             sx={{
               background: "linear-gradient(90deg, #2563eb, #1d4ed8)",
               color: "white",
@@ -286,14 +316,42 @@ export default function InventoryBase({
         rows={enableFilter ? filteredLogs : logs}
         type={endpoint}
         loading={loading}
+        onEditTransaction={(row) => {
+            setSelectedTransaction(row);
+            setModalMode("edit");
+            setModalOpen(true);
+        }}
+        onDeleteTransaction={(row) => {
+          setSelectedTransaction(row);
+          setDeleteModalOpen(true);
+        }}
       />
 
       <TransactionModal
         open={modalOpen}
-        onClose={() => setModalOpen(false)}
+        onClose={() => {
+          setModalOpen(false);
+          setSelectedTransaction(null);  
+          setModalMode("create");      
+        }}
         products={products || []}
         onSubmit={handleSubmit}
         tType={type}
+        mode={modalMode}
+        initialData={selectedTransaction}
+        onDelete={handleDeleteTransaction}
+      />
+      
+      <DeleteConfirmModal
+        open={deleteModalOpen}
+        onClose={() => setDeleteModalOpen(false)}
+        itemName={selectedTransaction?.productName}
+        onDelete={async () => {
+          await handleDeleteTransaction(
+            selectedTransaction?.saleId || selectedTransaction?.purchaseId
+          );
+          setDeleteModalOpen(false);
+        }}
       />
     </div>
   );
