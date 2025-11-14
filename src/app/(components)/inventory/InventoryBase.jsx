@@ -198,12 +198,16 @@ export default function InventoryBase({
     if (fromDate && toDate) {
       const from = new Date(fromDate);
       const to = new Date(toDate);
-      to.setHours(23, 59, 59, 999);
+      // Include full day
       filtered = filtered.filter((log) => {
         const logDate = new Date(log.createdAt || log.date || log.purchaseDate);
-        return logDate >= from && logDate <= to;
+        const logDay = new Date(logDate.getFullYear(), logDate.getMonth(), logDate.getDate());
+        const fromDay = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+        const toDay = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+        return logDay >= fromDay && logDay <= toDay;
       });
     }
+    
 
     // Product name search
     if (searchTerm.trim()) {

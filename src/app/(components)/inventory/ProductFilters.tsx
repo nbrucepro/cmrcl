@@ -15,6 +15,9 @@ import {
 import { Download, RestartAlt } from "@mui/icons-material";
 import { useGetCategoriesQuery } from "@/state/api";
 import { usePathname } from "next/navigation";
+import { LocalizationProvider, DatePicker } from "@mui/x-date-pickers";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 const ProductFilters = ({
   searchTerm,
@@ -45,6 +48,9 @@ const ProductFilters = ({
   const pathname = usePathname();
   const showDateFilters = pathname !== "/inv/products";
 
+  const fromDayjs = fromDate ? dayjs(fromDate) : null;
+  const toDayjs = toDate ? dayjs(toDate) : null;
+
   return (
     <Paper
       elevation={3}
@@ -52,7 +58,7 @@ const ProductFilters = ({
         p: { xs: 2, sm: 3 },
         borderRadius: 4,
         mb: 3,
-        background: (theme) =>
+        background: (theme: any) =>
           theme.palette.mode === "dark" ? "#1e1e1e" : "#f9fafb",
       }}
     >
@@ -76,7 +82,7 @@ const ProductFilters = ({
             size="small"
             fullWidth
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e: any) => setSearchTerm(e.target.value)}
           />
           <TextField
             select
@@ -84,7 +90,7 @@ const ProductFilters = ({
             size="small"
             fullWidth
             value={categoryFilter}
-            onChange={(e) => setCategoryFilter(e.target.value)}
+            onChange={(e: any) => setCategoryFilter(e.target.value)}
           >
             <MenuItem value="all">All Categories</MenuItem>
             {isLoading && <MenuItem disabled>Loading...</MenuItem>}
@@ -99,24 +105,70 @@ const ProductFilters = ({
           </TextField>
           {showDateFilters && (
             <>
-              <TextField
-                label="From Date"
-                type="date"
-                size="small"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 150 }}
-              />
-              <TextField
-                label="To Date"
-                type="date"
-                size="small"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                sx={{ minWidth: 150 }}
-              />
+              <LocalizationProvider
+                dateAdapter={AdapterDayjs}
+                adapterLocale={"en-gb"}
+              >
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <DatePicker
+                    label="From Date"
+                    value={fromDayjs}
+                    onChange={(newValue: Dayjs | null) => {
+                      setFromDate(
+                        newValue ? newValue.format("YYYY-MM-DD") : ""
+                      );
+                    }}
+                    format="DD/MM/YYYY"
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        sx: {
+                          width: 170,
+                          "& .MuiInputBase-root": {
+                            height: 34, // smaller overall height
+                            fontSize: "0.75rem", // text smaller
+                            paddingRight: "4px",
+                          },
+                          "& .MuiInputBase-input": {
+                            padding: "4px 8px", // shrink internal padding
+                          },
+                          "& .MuiSvgIcon-root": {
+                            fontSize: 18, // shrink calendar icon
+                          },
+                        },
+                      },
+                    }}
+                  />
+
+                  <DatePicker
+                    label="To Date"
+                    value={toDayjs}
+                    onChange={(newValue: Dayjs | null) => {
+                      setToDate(newValue ? newValue.format("YYYY-MM-DD") : "");
+                    }}
+                    format="DD/MM/YYYY"
+                    slotProps={{
+                      textField: {
+                        size: "small",
+                        sx: {
+                          width: 170,
+                          "& .MuiInputBase-root": {
+                            height: 34, // smaller overall height
+                            fontSize: "0.75rem", // text smaller
+                            paddingRight: "4px",
+                          },
+                          "& .MuiInputBase-input": {
+                            padding: "4px 8px", // shrink internal padding
+                          },
+                          "& .MuiSvgIcon-root": {
+                            fontSize: 18, // shrink calendar icon
+                          },
+                        },
+                      },
+                    }}
+                  />
+                </Stack>
+              </LocalizationProvider>
             </>
           )}
         </Stack>
@@ -146,7 +198,7 @@ const ProductFilters = ({
             },
           }}
         >
-          <FormControl size="small" sx={{ minWidth: 150 }}>
+          <FormControl size="small" sx={{ minWidth: 150, display: "none" }}>
             <InputLabel>Download as</InputLabel>
             <Select
               value={downloadType}
