@@ -67,7 +67,6 @@ export default function InventoryBase({
   }, []);
   const handleDeleteTransaction = async (id) => {
       try {
-        console.log("endpoint",`${API_URL}api/products/${endpoint}/${id}`)
         const res = await fetch(`${API_URL}api/products/${endpoint}/${id}`, {
           method: "DELETE",
           headers: {

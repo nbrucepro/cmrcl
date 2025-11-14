@@ -67,7 +67,6 @@ export default function TransactionModal({
       setTransactionType(
         tType || (initialData.totalAmount !== undefined ? "sale" : "purchase")
       );
-      console.log(initialData);
       setForm({
         productId: initialData.productId || "",
         quantity: initialData?.quantity,
@@ -234,8 +233,10 @@ export default function TransactionModal({
                 const height =
                   p.variants?.[0]?.attributes?.find((a) => a.name === "Height")
                     ?.value || "";
+                const sku =
+                  p.variants?.[0]?.sku?.replace(/-/g," ");
 
-                const mattressAbbr = `M-${type}-${height?.replace(
+                const mattressAbbr = `M-${sku}-${type}-${height?.replace(
                   /\s*inch/i,
                   '"'
                 )}`;
