@@ -59,6 +59,13 @@ const SaleBill = forwardRef(({ sale }, ref) => {
               Rs {(sale?.totalAmount).toFixed(2)}
             </td>
           </tr>
+          {sale.guarantyValue && sale.guarantyUnit && (
+          <tr>
+            <td colSpan={4} className="text-xs text-gray-600 italic py-1">
+              Warranty: {sale.guarantyValue} {sale.guarantyUnit}
+            </td>
+          </tr>
+        )}
         </tbody>
       </table>
 

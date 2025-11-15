@@ -109,7 +109,12 @@ const ProductFilters = ({
                 dateAdapter={AdapterDayjs}
                 adapterLocale={"en-gb"}
               >
-                <Stack direction="row" spacing={1} alignItems="center">
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={1}
+                  alignItems="center"
+                  width="100%"
+                >
                   <DatePicker
                     label="From Date"
                     value={fromDayjs}
@@ -122,18 +127,19 @@ const ProductFilters = ({
                     slotProps={{
                       textField: {
                         size: "small",
+                        fullWidth: true,
                         sx: {
-                          width: 170,
+                          width: { xs: "100%", sm: 170 },
                           "& .MuiInputBase-root": {
-                            height: 34, // smaller overall height
-                            fontSize: "0.75rem", // text smaller
+                            height: 34,
+                            fontSize: "0.75rem",
                             paddingRight: "4px",
                           },
                           "& .MuiInputBase-input": {
-                            padding: "4px 8px", // shrink internal padding
+                            padding: "4px 8px",
                           },
                           "& .MuiSvgIcon-root": {
-                            fontSize: 18, // shrink calendar icon
+                            fontSize: 18,
                           },
                         },
                       },
@@ -150,18 +156,19 @@ const ProductFilters = ({
                     slotProps={{
                       textField: {
                         size: "small",
+                        fullWidth: true,
                         sx: {
-                          width: 170,
+                          width: { xs: "100%", sm: 170 },
                           "& .MuiInputBase-root": {
-                            height: 34, // smaller overall height
-                            fontSize: "0.75rem", // text smaller
+                            height: 34,
+                            fontSize: "0.75rem",
                             paddingRight: "4px",
                           },
                           "& .MuiInputBase-input": {
-                            padding: "4px 8px", // shrink internal padding
+                            padding: "4px 8px",
                           },
                           "& .MuiSvgIcon-root": {
-                            fontSize: 18, // shrink calendar icon
+                            fontSize: 18,
                           },
                         },
                       },
